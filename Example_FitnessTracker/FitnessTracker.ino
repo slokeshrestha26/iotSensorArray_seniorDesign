@@ -42,7 +42,7 @@ SdFile file; // Log file.
 SdFile quartiles; // keeps track of your historical heart rate during sleep, which is used in the sleep quality calculation
 SdFile sleepHistory; // keeps track of your final nightly sleep quality in a seperate file. Cumulative sleep quality is calculated throughout the night and displayed every 30 seconds in the general log file, but
 // the sleepQuality file is based on your entire night and includes an analysis of your sleep stage chronology, which is not included in the snapshots displayed in the regular log file.
-const uint8_t ANALOG_COUNT = 4;
+const uint8_t ANALOG_COUNT = 4; //Number of analog channels.
 const int chipSelect = 10;
 
 // TinyScreen Global Variables
