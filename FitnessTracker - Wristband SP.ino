@@ -54,6 +54,7 @@ const int chipSelect = 10;
 TinyScreen display = TinyScreen(TinyScreenPlus);
 int background = TS_8b_Black; // sets the background color to black
 
+//NEED
 const int STEP_TRIGGER = 250; // The LRA Wireling will notify you of inactivity if you complete less than half of this number of steps each hour. Step % is based on this * 16 waking hours.
 const int DATA_INTERVAL = 30; // data is recorded to the microSD every DATA_INTERVAL seconds
 const bool DEBUG_MD = false; // if set to true, enables debug mode
@@ -76,25 +77,27 @@ int32_t bufferLength = 50; //Options: 50, 100, 200, 400, 800, 1000, 1600, 3200, 
 //NEED
 int32_t heartRate; //heart rate value
 
-//I DONT KNOW IF THIS IS NECESSARY
+//NEED
 /* Change these values to set the current time when you upload the sketch. */
 const byte seconds = 10;
 const byte minutes = 34;
 const byte hours = 14;
 
+//NEED
 /* Change these values to set the current initial date */
 const byte day = 16;
 const byte month = 8;
 const byte year = 19;
 
+/* NOT NEEDED
 // set your approximate bedtime. Your sleep quality score will be most accurate if you go to bed at this time.
 // However, there is a variable time window (UP TO 30 MINUTES,you can change this number by modifying BEDTIME_ALLOWANCE) after this bedtime that will be exempt from the sleep quality calculation if you are quite active.
 // The threshold to start calculating sleep quality is that the accelerometer cannot have detected more than 10 steps in the last 2 minutes. If at any point after the sleep quality calculation begins
 // there is a minute with more than 15 steps, the sleep quality calculation will be reset and the entry condition of <= 10 steps in the last 2 minutes must be met again.
 // At BEDTIME_ALLOWANCE minutes after your bedtime, sleep quality calculation will begin regardless of your activity level.
-const int BEDTIME_HOUR = 23; // use 24 hour time only.
+// const int BEDTIME_HOUR = 23; // use 24 hour time only.
 const int BEDTIME_MINUTE = 53;
-const int BEDTIME_ALLOWANCE = 30; // see above
+const int BEDTIME_ALLOWANCE = 30; // see above */
 
 /* //NOT NEEDED ONLY IF WE DID MICROPHONE
 // used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
@@ -209,14 +212,17 @@ void setup(void)
   unsigned long tempEpoch = rtc.getEpoch();
   int tempHour = rtc.getHours();
   int tempMinute = rtc.getMinutes();
-  rtc.setTime(BEDTIME_HOUR, BEDTIME_MINUTE, 0);
+  
+/* NOT NEEDED
+rtc.setTime(BEDTIME_HOUR, BEDTIME_MINUTE, 0);
   if (BEDTIME_HOUR < tempHour || (BEDTIME_HOUR == tempHour && BEDTIME_MINUTE < tempMinute))
   {
     bedtimeEpoch = rtc.getEpoch() + 86400;
   }
   else {
     bedtimeEpoch = rtc.getEpoch();
-  }
+  } */
+	
   rtc.setEpoch(tempEpoch); // reset back to current time
   unsigned long epochDiff = (max(bedtimeEpoch, tempEpoch) - min(bedtimeEpoch, tempEpoch));
 
@@ -992,14 +998,16 @@ void wakeMinute(int validationEpoch, int &emptyIntsCounter, bool &validatedPrevi
       unsigned long tempEpoch = rtc.getEpoch();
       int tempHour = rtc.getHours();
       int tempMinute = rtc.getMinutes();
-      rtc.setTime(BEDTIME_HOUR, BEDTIME_MINUTE, 0);
+      
+	/* NOT NEEDED
+	rtc.setTime(BEDTIME_HOUR, BEDTIME_MINUTE, 0);
       if (BEDTIME_HOUR < tempHour || (BEDTIME_HOUR == tempHour && BEDTIME_MINUTE < tempMinute))
       {
         bedtimeEpoch = rtc.getEpoch() + 86400; // adjust bedtimeEpoch for the next day
       }
       else {
         bedtimeEpoch = rtc.getEpoch();
-      }
+      } */
       rtc.setEpoch(tempEpoch); // reset back to current time
     }
   }
