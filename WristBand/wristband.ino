@@ -70,3 +70,29 @@ int accelSensorPort = 3;
 int pulseSensorPort = 1;
 int lraSensorPort = 2;
 int accelSensorPort = 3;
+
+unsigned long loopStart = 0;
+uint32_t doVibrate = 0;
+bool firstSD = true;
+
+// Setting up RealTime Clock variables. 
+RTCZero rtc;
+
+void initStepTimestamps();
+bool validatePorts();
+int updatePedometer();
+void createString(String &, String &, bool , int , bool &, unsigned long &);
+void validateSD(String , String , bool );
+void wakeMinute(int , int &, bool &);
+void sleepMovement(unsigned long &one, unsigned long &two, unsigned long &five, unsigned long &fifteen);
+int getTotalSteps();
+void buzzLRA();
+void checkButtons(unsigned long &screenClearTime);
+float actualDeepPercentage();
+int expectedDeepPercentage();
+float actualLightPercentage();
+int expectedLightPercentage();
+float actualREMPercentage();
+int expectedREMPercentage();
+float normalizedCrossCorrelation(const byte First[], byte Second[], float whichArray);
+void dailyStepReset();
