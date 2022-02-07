@@ -43,7 +43,7 @@ SdFile quartiles; // keeps track of your historical heart rate during sleep, whi
 SdFile sleepHistory; // keeps track of your final nightly sleep quality in a seperate file. Cumulative sleep quality is calculated throughout the night and displayed every 30 seconds in the general log file, but
 // the sleepQuality file is based on your entire night and includes an analysis of your sleep stage chronology, which is not included in the snapshots displayed in the regular log file.
 const uint8_t ANALOG_COUNT = 4; //Number of analog channels.
-const int chipSelect = 10;
+const int chipSelect = 15;
 
 // TinyScreen Global Variables
 TinyScreen display = TinyScreen(TinyScreenPlus);
@@ -55,7 +55,7 @@ const bool DEBUG_MD = false; // if set to true, enables debug mode
 const int FAST_DATA_INTERVAL = DATA_INTERVAL * 1000; // performance optimization
 const int AGE = 25; // age has a significant impact on sleep composition, so inputting your age will increase the accuracy of your sleep quality calculation
 const int DELAY_INTERVAL = 2800; // specifies the delay between LRA pulses in ms
-int stepsTowardGoal = 0; // keeps track of how many steps you have taken the the past hour as compared to your goal. This will trigger inactivity pulses on the LRA
+int stepsTowardGoal = 0; // keeps track of how many steps you have takenm the the past hour as compared to your goal. This will trigger inactivity pulses on the LRA
 
 
 // heart rate and oxygen concentration variables
@@ -167,7 +167,7 @@ void setup(void)
 
   // Check for SD card
   SerialUSB.println("Initializing SD card...");
-  if (SD.begin(chipSelect, SD_SCK_MHZ(50)))
+  if (SD.begin(chipSelect, SD_SCK_MHZ(48)))
   {
     SerialUSB.println("card initialized.");
 
@@ -180,7 +180,7 @@ void setup(void)
     SerialUSB.println("SD Card not found, exiting program!");
     SerialUSB.println();
     delay(5000);
-    while (1);
+//    while (1);
   }
 
   rtc.begin();
