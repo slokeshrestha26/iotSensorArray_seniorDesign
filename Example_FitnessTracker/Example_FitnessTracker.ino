@@ -28,7 +28,8 @@
 #include <SdFat.h> // enables data to be logged to an sd card
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
-#include "sleepStages.h" // contains examples of ideal sleep chronologies, which are used as part of the sleep scoring algorithm 
+#include "sleepStages.h" // contains examples of ideal sleep chronologies, which are used as part of the sleep scoring algorithm
+#include <SD.h>
 
 Adafruit_DRV2605 drv; // lra sensor object
 MAX30101 pulseSensor = MAX30101(); // pulseOx sensor object
@@ -43,7 +44,7 @@ SdFile quartiles; // keeps track of your historical heart rate during sleep, whi
 SdFile sleepHistory; // keeps track of your final nightly sleep quality in a seperate file. Cumulative sleep quality is calculated throughout the night and displayed every 30 seconds in the general log file, but
 // the sleepQuality file is based on your entire night and includes an analysis of your sleep stage chronology, which is not included in the snapshots displayed in the regular log file.
 const uint8_t ANALOG_COUNT = 4; //Number of analog channels.
-const int chipSelect = 15;
+const int chipSelect = 21;
 
 // TinyScreen Global Variables
 TinyScreen display = TinyScreen(TinyScreenPlus);
@@ -167,7 +168,7 @@ void setup(void)
 
   // Check for SD card
   SerialUSB.println("Initializing SD card...");
-  if (SD.begin(chipSelect, SD_SCK_MHZ(48)))
+  if (SerialUSB)
   {
     SerialUSB.println("card initialized.");
 
