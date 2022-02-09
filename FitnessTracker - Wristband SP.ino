@@ -28,7 +28,8 @@
 #include <SdFat.h> // enables data to be logged to an sd card
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
-#include "sleepStages.h" // contains examples of ideal sleep chronologies, which are used as part of the sleep scoring algorithm 
+#include "sleepStages.h" // contains examples of ideal sleep chronologies, which are used as part of the sleep scoring algorithm
+#include <SD.h> // contains what's needed to find and access SD card.
 
 //NEED
 Adafruit_DRV2605 drv; // lra sensor object
@@ -42,19 +43,14 @@ SdFat SD; // File system object.
 SdFile file; // Log file.
 SdFile quartiles; // keeps track of your historical heart rate during sleep, which is used in the sleep quality calculation
 
-/* //NOT NEEDED
-//SdFile sleepHistory; // keeps track of your final nightly sleep quality in a seperate file. Cumulative sleep quality is calculated throughout the night and displayed every 30 seconds in the general log file, but
-// the sleepQuality file is based on your entire night and includes an analysis of your sleep stage chronology, which is not included in the snapshots displayed in the regular log file.
- */const uint8_t ANALOG_COUNT = 4;
+const uint8_t ANALOG_COUNT = 4;
 
 const int chipSelect = 10;
 
-//NEED
 // TinyScreen Global Variables
 TinyScreen display = TinyScreen(TinyScreenPlus);
 int background = TS_8b_Black; // sets the background color to black
 
-//NEED
 const int STEP_TRIGGER = 250; // The LRA Wireling will notify you of inactivity if you complete less than half of this number of steps each hour. Step % is based on this * 16 waking hours.
 const int DATA_INTERVAL = 30; // data is recorded to the microSD every DATA_INTERVAL seconds
 const bool DEBUG_MD = false; // if set to true, enables debug mode
@@ -62,68 +58,34 @@ const int FAST_DATA_INTERVAL = DATA_INTERVAL * 1000; // performance optimization
 const int AGE = 25; // age has a significant impact on sleep composition, so inputting your age will increase the accuracy of your sleep quality calculation
 const int DELAY_INTERVAL = 2800; // specifies the delay between LRA pulses in ms
 
-/* //NOT NEEDED
-//int stepsTowardGoal = 0; // keeps track of how many steps you have taken the the past hour as compared to your goal. This will trigger inactivity pulses on the LRA
- */
-
-//NEED
 // heart rate and oxygen concentration variables
 int heartData[2880] = {};
 int32_t bufferLength = 50; //Options: 50, 100, 200, 400, 800, 1000, 1600, 3200, the lower the faster the oxygen saturation calculation
 
-/* //NOT NEEDED
-//int32_t saturatedOxygen; //saturatedOxygen value */
-
-//NEED
 int32_t heartRate; //heart rate value
 
-//NEED
 /* Change these values to set the current time when you upload the sketch. */
 const byte seconds = 10;
 const byte minutes = 34;
 const byte hours = 14;
 
-//NEED
 /* Change these values to set the current initial date */
 const byte day = 16;
 const byte month = 8;
 const byte year = 19;
 
-/* NOT NEEDED
-// set your approximate bedtime. Your sleep quality score will be most accurate if you go to bed at this time.
-// However, there is a variable time window (UP TO 30 MINUTES,you can change this number by modifying BEDTIME_ALLOWANCE) after this bedtime that will be exempt from the sleep quality calculation if you are quite active.
-// The threshold to start calculating sleep quality is that the accelerometer cannot have detected more than 10 steps in the last 2 minutes. If at any point after the sleep quality calculation begins
-// there is a minute with more than 15 steps, the sleep quality calculation will be reset and the entry condition of <= 10 steps in the last 2 minutes must be met again.
-// At BEDTIME_ALLOWANCE minutes after your bedtime, sleep quality calculation will begin regardless of your activity level.
-// const int BEDTIME_HOUR = 23; // use 24 hour time only.
-const int BEDTIME_MINUTE = 53;
-const int BEDTIME_ALLOWANCE = 30; // see above */
-
 // used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
- // the microphone Wireling is not used in this project, but we have included some code that will make it very easy to add if you so choose
-//const float memsPin = A0; // used for microphone
 int pulseSensorPort = 1;
 int lraSensorPort = 2;
 int accelSensorPort = 3;
 
-
 unsigned long stepTimestamps[STEP_TRIGGER] = {};
 unsigned long loopStart = 0;
-/* //NOT NEEDED
-//String sleepStage = ""; */
 uint32_t doVibrate = 0;
 bool firstSD = true;
-/* //NOT NEEDED
-byte sleepStageArray[1320] = {};
-// when you are asleep, populated with sleep stage every 30 seconds, which is used to compare against optimal sleep stage transitions when calculating sleep quality. more details about
-// methodology can be found the comments of the sleepQuality() function.
-int sleepStageCounter = 0; // Used as a counter for the sleepStage array
-int sleepMinutes[60] = {}; */
 
-//NEED
 #include <RTCZero.h>
 RTCZero rtc;
-
 
 // heart rate variables
 const byte RATE_SIZE = DATA_INTERVAL * 100; // Based on the data interval. this could take a lot of memory
@@ -138,23 +100,14 @@ bool validatePorts();
 int updatePedometer();
 void createString(String &, String &, bool , int , bool &, unsigned long &);
 void validateSD(String , String , bool );
+//Don't think we need this
 void wakeMinute(int , int &, bool &);
-//I DONT THINK WE NEED THIS
-void sleepMovement(unsigned long &one, unsigned long &two, unsigned long &five, unsigned long &fifteen);
 int getTotalSteps();
 void buzzLRA();
 void checkButtons(unsigned long &screenClearTime);
-//NEED TO CHECK IF WE NEED THESE
-float actualDeepPercentage();
-int expectedDeepPercentage();
-float actualLightPercentage();
-int expectedLightPercentage();
-float actualREMPercentage();
-int expectedREMPercentage();
 float normalizedCrossCorrelation(const byte First[], byte Second[], float whichArray);
 void dailyStepReset();
 
-//NEED
 void setup(void)
 {
   SerialUSB.begin(115200);
@@ -163,6 +116,24 @@ void setup(void)
   Wire.begin();
   Wireling.begin();
 
+  // Check for SD card
+  SerialUSB.println("Initializing SD card...");
+  if (SerialUSB)
+  {
+    SerialUSB.println("card initialized.");
+
+    SerialUSB.print(F("Logging to: "));
+    SerialUSB.println(fileName);
+    SerialUSB.println();
+  }
+  else
+  {
+    SerialUSB.println("SD Card not found, exiting program!");
+    SerialUSB.println();
+    delay(5000);
+    while (1);
+  }
+	
   if (lraSensorPort) {
     drv.begin();
     drv.selectLibrary(1);
@@ -200,7 +171,6 @@ void setup(void)
   display.fontColor(TS_8b_White, background);
 }
 
-//NEED
 void loop() {
   String displayString = ""; // written once in the logfile to provide column headings along with the data
   String dataString = ""; // written to the logfile every data interval seconds. does not contain headings, just csv data only. see createstring for more details
@@ -219,10 +189,6 @@ void loop() {
   static unsigned long five = millis();
   static unsigned long fifteen = millis();
   static unsigned long oneMinute = millis();
-
-  /* //NOT NEEDED
-  //int micReading = analogRead(memsPin); // example of how you would check for and reference the MEMS microphone Wireling
- */
   
   Wireling.selectPort(pulseSensorPort);  
   checkPulse();
@@ -233,8 +199,6 @@ void loop() {
   {
     createString(displayString, dataString, firstSD, currentHour, validatedPreviously, validationEpoch); //create strings from recent data
     validateSD(dataString, displayString, firstSD); // write the strings to the SD card after validating the connection to the SD card is intact
-    //Shouldn't need this first if statement
-	//if (currentHour >= BEDTIME_HOUR && (validatedPreviously || bedtimeValidation(validatedPreviously, validationEpoch))) { // if you are asleep
       Wireling.selectPort(pulseSensorPort);
       if(pulseSensor.update()){
         if (pulseSensor.pulseValid()) {
