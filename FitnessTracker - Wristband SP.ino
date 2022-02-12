@@ -28,8 +28,8 @@
 #include <SdFat.h> // enables data to be logged to an sd card
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
-#include "sleepStages.h" // contains examples of ideal sleep chronologies, which are used as part of the sleep scoring algorithm
-#include <SD.h> // contains what's needed to find and access SD card.
+
+//#include <SD.h> // contains what's needed to find and access SD card.
 
 Adafruit_DRV2605 drv; // lra sensor object
 MAX30101 pulseSensor = MAX30101(); // pulseOx sensor object
@@ -91,9 +91,10 @@ const byte RATE_SIZE = DATA_INTERVAL * 100; // Based on the data interval. this 
 byte rates[RATE_SIZE]; //heartDataay of heart rates
 int beatAvg = 0; // represents the average heart rate over the DATA_INTERVAL
 
+int motionX = 0; // x axis motion
+
 int stepArr[4] = {};
 
-void initStepTimestamps();
 bool validatePorts();
 int updatePedometer();
 void createString(String &, String &, bool , int , bool &);
@@ -106,7 +107,6 @@ void setup(void)
 {
   SerialUSB.begin(115200);
   delay(5000); // replaces the above
-  initStepTimestamps();
   Wire.begin();
   Wireling.begin();
 
@@ -127,7 +127,7 @@ void setup(void)
     delay(5000);
     while (1);
   }
-	
+  
   if (lraSensorPort) {
     drv.begin();
     drv.selectLibrary(1);
@@ -153,10 +153,10 @@ void setup(void)
   unsigned long tempEpoch = rtc.getEpoch();
   int tempHour = rtc.getHours();
   int tempMinute = rtc.getMinutes();
-	
+  
   rtc.setEpoch(tempEpoch); // reset back to current time
   //Dont need EPOCH DIff
-	
+  
   // This is the setup used to initialize the TinyScreen's appearance GUI this is important.
   display.begin();
   display.setBrightness(15);
@@ -174,7 +174,7 @@ void loop() {
   static int currentHour = rtc.getHours(); // performance optimization
   static bool validatedPreviously = false; // avoids the need to constantly validate whether it is past bedtime or not by store the fact within this variable.
   
-  // NEED TO CHECK AND SEE IF THESE ARE STILL PRESENT AFTER REMOVING THE OBVIOUS	
+  // NEED TO CHECK AND SEE IF THESE ARE STILL PRESENT AFTER REMOVING THE OBVIOUS  
   // note that the many areas of the sketch are not executed except at night when calculating or recording sleep quality.
   static unsigned long batt = millis(); // used to check the battery voltage and run some other code every data reporting inverval, default 30 seconds
   static unsigned long goalTimer = millis(); // used to check if you are meeting your daily goals
@@ -208,8 +208,8 @@ void loop() {
 
   if (millis() - oneMinute > 60000)
   {
-	
-	oneMinute = millis();
+  
+  oneMinute = millis();
   
   }
 
@@ -308,6 +308,15 @@ void checkPulse()
     }
 }
 
+int updatePedometer() {
+ // if (millis() < sampleInterval + lastSample)return 0; we don't need to check this as it takes longer than sampleInterval to updatePulse anyway
+
+  accel_sensor.read();//This function gets new data from the acccelerometer
+
+  motionX = accel_sensor.X;
+
+}
+
 void validateSD(String dataString, String displayString, bool firstSD)
 {
   if (!file.open(fileName, O_CREAT | O_RDWR | O_APPEND)) {
@@ -353,7 +362,6 @@ void logData(String dataString, String displayString) {
 }
 
 void createString(String &displayString, String &dataString, bool firstSD, int currentHour, bool &validatedPreviously) {
-  int total = getTotalSteps();
   unsigned long epoch = rtc.getEpoch();
   
   int battery = getBattPercent();
@@ -361,12 +369,6 @@ void createString(String &displayString, String &dataString, bool firstSD, int c
   {
     displayString += "epochTime: ";
     displayString += String(epoch);
-    displayString += ",";
-    displayString += " stepCount: ";
-    displayString += String(total);
-    displayString += ",";
-    displayString += " stepPercent: ";
-    displayString += String(percent);
     displayString += ",";
     displayString += " pulse: ";
     displayString += String(beatAvg); // represents the average pulse recorded since the last time file was written to
@@ -383,10 +385,6 @@ void createString(String &displayString, String &dataString, bool firstSD, int c
   else
   {
     dataString += String(epoch);
-    dataString += ",";
-    dataString += String(total);
-    dataString += ",";
-    dataString += String(percent);
     dataString += ",";
     dataString += String(beatAvg);
     dataString += ",";
@@ -450,25 +448,7 @@ float normalizedCrossCorrelation(const byte First[], byte Second[], float whichA
   float sqsum2 = 0;
   float Fm = 0;
   float Sm = 0;
-  int size = sleepStageCounter;
-  SerialUSB.print("size: ");
-  SerialUSB.println(size);
 
-  for (int i = 0; i < size; i++) {
-    temp += First[i];
-  }
-  for (int i = 0; i < size; i++) {
-    temp2 += Second[i];
-  }
-
-  Fm = temp / size;
-  Sm = temp2 / size;
-
-  for (int i = 0; i < size; i++) {
-    sum1 += (First[i] - Fm) * (Second[i] - Sm);
-    sqsum1 += pow((First[i] - Fm), 2);
-    sqsum2 += pow((Second[i] - Sm), 2);
-  }
   float result = (sum1 / (sqrt(sqsum1 * sqsum2)));
   SerialUSB.print("NCC Second & First : ");
   SerialUSB.println(result);
@@ -498,15 +478,14 @@ void checkButtons(unsigned long &screenClearTime)
 {
   if(display.getButtons(TSButtonUpperLeft) || display.getButtons(TSButtonUpperRight) || display.getButtons(TSButtonLowerLeft) || display.getButtons(TSButtonLowerRight))
   {
-    int total = getTotalSteps();
-	
+  
     int battery = getBattPercent();
     
     if(rtc.getSeconds() == 0 && millis()-screenClearTime > 1000){
       display.clearScreen();
       screenClearTime = millis();
     }
-	  
+    
     display.on();
     display.setCursor(0,0);
     display.print(rtc.getMonth());
@@ -519,18 +498,15 @@ void checkButtons(unsigned long &screenClearTime)
     display.print(":");
     display.print(rtc.getMinutes());
     display.print(":");
-    display.print(rtc.getSeconds());
+    display.println(rtc.getSeconds());
     display.setCursor(0,10);
-    display.print("Steps: ");
-    display.println(total);
-    display.setCursor(0,20);
-    display.print("Step %: "); 
-    display.println(percent);
+    display.print("Movement X: ");
+    display.println(motionX);
     display.setCursor(0,30);
     display.print("Heart Rate: ");
     display.println(beatAvg);
     display.setCursor(0,40);
-	  
+    
     display.setCursor(0,50);
     display.print("Battery %: ");
     display.println(battery);
