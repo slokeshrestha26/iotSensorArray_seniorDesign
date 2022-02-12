@@ -99,13 +99,12 @@ const byte year = 19;
 const int BEDTIME_MINUTE = 53;
 const int BEDTIME_ALLOWANCE = 30; // see above */
 
-/* //NOT NEEDED ONLY IF WE DID MICROPHONE
 // used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
  // the microphone Wireling is not used in this project, but we have included some code that will make it very easy to add if you so choose
-const float memsPin = A0; // used for microphone
+//const float memsPin = A0; // used for microphone
 int pulseSensorPort = 1;
 int lraSensorPort = 2;
-int accelSensorPort = 3; */
+int accelSensorPort = 3;
 
 
 unsigned long stepTimestamps[STEP_TRIGGER] = {};
@@ -159,16 +158,11 @@ void dailyStepReset();
 void setup(void)
 {
   SerialUSB.begin(115200);
-  //while (!SerialUSB);//Unsure what this does
   delay(5000); // replaces the above
   initStepTimestamps();
   Wire.begin();
   Wireling.begin();
 
-//  checkPorts(); // determines what Wireling is attached to which port, if any
-//  if (!validatePorts()) {
-//    SerialUSB.println("Critical error with port assignment, please assign ports manually!");
-//  }
   if (lraSensorPort) {
     drv.begin();
     drv.selectLibrary(1);
@@ -188,40 +182,12 @@ void setup(void)
     pulseSensor.begin(); //Configure sensor with default settings
   }
 
-  // Check for SD card
-  SerialUSB.println("Initializing SD card...");
-  if (SD.begin(chipSelect, SD_SCK_MHZ(50)))
-  {
-    SerialUSB.println("card initialized.");
-
-    SerialUSB.print(F("Logging to: "));
-    SerialUSB.println(fileName);
-    SerialUSB.println();
-  }
-  else
-  {
-    SerialUSB.println("SD Card not found, exiting program!");
-    SerialUSB.println();
-    delay(5000);
-    while (1);
-  }
-
   rtc.begin();
   rtc.setTime(hours, minutes, seconds);//h,m,s
   rtc.setDate(day, month, year);//d,m,y
   unsigned long tempEpoch = rtc.getEpoch();
   int tempHour = rtc.getHours();
   int tempMinute = rtc.getMinutes();
-  
-/* NOT NEEDED
-rtc.setTime(BEDTIME_HOUR, BEDTIME_MINUTE, 0);
-  if (BEDTIME_HOUR < tempHour || (BEDTIME_HOUR == tempHour && BEDTIME_MINUTE < tempMinute))
-  {
-    bedtimeEpoch = rtc.getEpoch() + 86400;
-  }
-  else {
-    bedtimeEpoch = rtc.getEpoch();
-  } */
 	
   rtc.setEpoch(tempEpoch); // reset back to current time
   unsigned long epochDiff = (max(bedtimeEpoch, tempEpoch) - min(bedtimeEpoch, tempEpoch));
@@ -1369,7 +1335,9 @@ void checkButtons(unsigned long &screenClearTime)
     display.print("Heart Rate: ");
     display.println(beatAvg);
     display.setCursor(0,40);
-    display.print("Oxygen: ");
+	  
+	//CHECK FOR OTHER OXYGEN RELATED LINES
+    //display.print("Oxygen: ");
     //NOT NEEDED
 	//display.println(saturatedOxygen);
     display.setCursor(0,50);
