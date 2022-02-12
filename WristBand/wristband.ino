@@ -5,6 +5,8 @@
 #include <TinyScreen.h> // This library is used to print sensor values to a TinyScreen
 #include <RTCZero.h>
 #include <Wireling.h>
+#include "Adafruit_DRV2605.h" // used to interface with the LRA Wireling
+
 
 
 // function prototype
@@ -27,7 +29,7 @@ Adafruit_DRV2605 drv; // lra sensor object
 
 // used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
 // the order is in the form: {pulse sensor, lra sensor, accel sensor}
-int8_t port_arr = {1,2,3};
+int8_t port_arr[] = {1,2,3};
 
 // SD card variables
 #define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
@@ -59,25 +61,29 @@ int beatAvg = 0; // represents the average heart rate over the DATA_INTERVAL
 
 int motionX = 0; // x axis motion
 
+//RTC
+RTCZero rtc;
+
 
 /* Trying out SD.h
 */
 
 void setup(){
-  SerialUSB.begin(115200);
+  SerialUSB.begin(9600);
   delay(5000); // replaces the above
   Wire.begin();
   Wireling.begin();
-  
+
   initializeSDCard();
   initializeSensors(port_arr);
+  initializeDisplay();
 
-
-
+  //timing setup
+  rtc.begin(); // timing
 }
 
 void loop(){
-  
+
 }
 
 void initializeSDCard(){
@@ -131,4 +137,14 @@ void initializeSensors(int8_t port_arr[]){
     Wireling.selectPort(pulseSensorPort);
     pulseSensor.begin(); //Configure sensor with default settings
   }
+}
+
+void initializeDisplay(){
+  // This is the setup used to initialize the TinyScreen's appearance GUI this is important.
+  display.begin();
+  display.setBrightness(15);
+  display.setFlip(true);
+  display.setFont(thinPixel7_10ptFontInfo);
+  display.fontColor(TS_8b_White, background);
+
 }
