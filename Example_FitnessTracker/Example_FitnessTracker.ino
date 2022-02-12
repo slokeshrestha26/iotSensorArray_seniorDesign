@@ -25,7 +25,7 @@
 #include <Wire.h>
 #include <Wireling.h>
 #include "Adafruit_DRV2605.h" // used to interface with the LRA Wireling
-#include <SdFat.h> // enables data to be logged to an sd card
+//#include <SdFat.h> // enables data to be logged to an sd card
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
 #include "sleepStages.h" // contains examples of ideal sleep chronologies, which are used as part of the sleep scoring algorithm
@@ -38,7 +38,7 @@ BMA250 accel_sensor; // accelerometer sensor object
 // SD card variables
 #define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
 char fileName[13] = FILE_BASE_NAME;
-SdFat SD; // File system object.
+//SdFat SD; // File system object.
 SdFile file; // Log file.
 SdFile quartiles; // keeps track of your historical heart rate during sleep, which is used in the sleep quality calculation
 SdFile sleepHistory; // keeps track of your final nightly sleep quality in a seperate file. Cumulative sleep quality is calculated throughout the night and displayed every 30 seconds in the general log file, but
@@ -168,7 +168,7 @@ void setup(void)
 
   // Check for SD card
   SerialUSB.println("Initializing SD card...");
-  if (SerialUSB)
+  if (SD.begin(27))
   {
     SerialUSB.println("card initialized.");
 
