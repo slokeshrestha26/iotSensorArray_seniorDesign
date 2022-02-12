@@ -92,6 +92,8 @@ byte rates[RATE_SIZE]; //heartDataay of heart rates
 int beatAvg = 0; // represents the average heart rate over the DATA_INTERVAL
 
 int motionX = 0; // x axis motion
+int motionY = 0; // y axis motion
+int motionZ = 0; // z axis motion
 
 int stepArr[4] = {};
 
@@ -243,11 +245,6 @@ int minutesLeftInHour()
   return 60 - rtc.getMinutes();
 }
 
-int getStepTrigger()
-{
-  return STEP_TRIGGER;
-}
-
 // Calculate the battery voltage
 float getBattVoltage(void) {
   const int VBATTpin = A4;
@@ -314,6 +311,8 @@ int updatePedometer() {
   accel_sensor.read();//This function gets new data from the acccelerometer
 
   motionX = accel_sensor.X;
+  motionY = accel_sensor.Y;
+  motionZ = accel_sensor.Z;
 
 }
 
@@ -502,11 +501,15 @@ void checkButtons(unsigned long &screenClearTime)
     display.setCursor(0,10);
     display.print("Movement X: ");
     display.println(motionX);
+    display.setCursor(0,20);
+    display.print("Movement Y: ");
+    display.println(motionY);
     display.setCursor(0,30);
-    display.print("Heart Rate: ");
-    display.println(beatAvg);
+    display.print("Movement Z: ");
+    display.println(motionZ);
     display.setCursor(0,40);
-    
+    display.print("Heart Rate: ");
+    display.println(beatAvg);    
     display.setCursor(0,50);
     display.print("Battery %: ");
     display.println(battery);
