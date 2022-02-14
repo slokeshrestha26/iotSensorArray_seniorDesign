@@ -95,6 +95,8 @@ int motionX = 0; // x axis motion
 int motionY = 0; // y axis motion
 int motionZ = 0; // z axis motion
 
+bool stressDetected = false;
+
 int stepArr[4] = {};
 
 bool validatePorts();
@@ -104,6 +106,8 @@ void validateSD(String , String , bool );
 void buzzLRA();
 void checkButtons(unsigned long &screenClearTime);
 float normalizedCrossCorrelation(const byte First[], byte Second[], float whichArray);
+void checkPulse();
+void stressDetectedButton(unsigned long &screenClearTime);
 
 void setup(void)
 {
@@ -152,12 +156,12 @@ void setup(void)
   rtc.begin();
   rtc.setTime(hours, minutes, seconds);//h,m,s
   rtc.setDate(day, month, year);//d,m,y
+//unsure how getEpoch is being displayed on excel file, but it is important in settting the date and time
   unsigned long tempEpoch = rtc.getEpoch();
   int tempHour = rtc.getHours();
   int tempMinute = rtc.getMinutes();
   
   rtc.setEpoch(tempEpoch); // reset back to current time
-  //Dont need EPOCH DIff
   
   // This is the setup used to initialize the TinyScreen's appearance GUI this is important.
   display.begin();
@@ -193,19 +197,14 @@ void loop() {
   
   Wireling.selectPort(accelSensorPort);
   updatePedometer();
-  if (millis() - batt > FAST_DATA_INTERVAL) // record battery voltage when needed
-  {
-    createString(displayString, dataString, firstSD, currentHour, validatedPreviously); //create strings from recent data
-    validateSD(dataString, displayString, firstSD); // write the strings to the SD card after validating the connection to the SD card is intact
-      Wireling.selectPort(pulseSensorPort);
-      if(pulseSensor.update()){
-        if (pulseSensor.pulseValid()) {
-          beatAvg = pulseSensor.BPM();
-          heartData[heartIndex] = pulseSensor.BPM();
-          ++heartIndex;
-        }
-      }
-    batt = millis();
+  createString(displayString, dataString, firstSD, currentHour, validatedPreviously); //create strings from recent data
+  validateSD(dataString, displayString, firstSD); // write the strings to the SD card after validating the connection to the SD card is intact
+  if(pulseSensor.update()){
+    if (pulseSensor.pulseValid()) {
+      beatAvg = pulseSensor.BPM();
+      heartData[heartIndex] = pulseSensor.BPM();
+      ++heartIndex;
+    }
   }
 
   if (millis() - oneMinute > 60000)
@@ -215,7 +214,12 @@ void loop() {
   
   }
 
-  checkButtons(screenClearTime); // will activate display if user presses any button on the TS+
+  if(stressDetected){
+    stressDetected = false;
+  }
+  
+  checkButtons(screenClearTime); // will activate display if user presses any button except top right
+  stressDetectedButton(screenClearTime); // will activate display if user presses top right button
 }
 
 void updateTime(uint8_t * b) {
@@ -374,12 +378,18 @@ void createString(String &displayString, String &dataString, bool firstSD, int c
     displayString += ",";
     
     Wireling.selectPort(pulseSensorPort);
-    displayString += " Oxygen Saturation: ";
-    
+    displayString += " X axis Position: ";
+    displayString += String(motionX);
+    displayString += ",";
+    displayString += " Y axis Position: ";
+    displayString += String(motionY);
+    displayString += ",";    
+    displayString += " Z axis Position ";
+    displayString += String(motionZ);
     displayString += ",";
     Wireling.selectPort(accelSensorPort);
-    displayString += " batt: ";
-    displayString += String(battery);
+    displayString += " Stress: ";
+    displayString += String(stressDetected);
   }
   else
   {
@@ -389,45 +399,15 @@ void createString(String &displayString, String &dataString, bool firstSD, int c
     dataString += ",";
     
     Wireling.selectPort(pulseSensorPort);
-    
-    dataString += ",";
     Wireling.selectPort(accelSensorPort);
-    dataString += String(battery);
+    dataString += String(motionX);
+    dataString += ",";
+    dataString += String(motionY);
+    dataString += ",";    
+    dataString += String(motionZ);   
+    dataString += ",";
+    dataString += String(stressDetected);
   }
-}
-
-String getFirst(int &emptyIntsCounter)
-{
-  //sorting - ASCENDING ORDER
-  for (int i = 0; i < 2880; i++)
-  {
-    for (int j = i + 1; j < 2880; j++)
-    {
-      if (heartData[i] > heartData[j])
-      {
-        int temp  = heartData[i];
-        heartData[i] = heartData[j];
-        heartData[j] = temp;
-      }
-    }
-  }
-
-  for (int i = 0; i < 2880; ++i)
-  {
-    if (heartData[i] == 0)
-    {
-      ++emptyIntsCounter;
-    }
-  }
-  return String(max(10, heartData[(int)((2880 - emptyIntsCounter) * 0.25) + emptyIntsCounter])); // after the array is sorted, we know the index of the first quartile after adjusting for unfilled array positions characterized by 0's
-}
-
-String getThird(int &emptyIntsCounter) // must be called immediatly after getFirst, otherwise the array will not be sorted
-{
-  int thirdQuartile = heartData[(int)((2880 - emptyIntsCounter) * 0.75) + emptyIntsCounter];
-  resetHeartData(); // reset the array to 0's once we have calculated the quartile values to avoid old values being used in the next quartile calculation
-  emptyIntsCounter = 0; // same reason as above
-  return String(max(10, thirdQuartile));
 }
 
 void resetHeartData()
@@ -436,27 +416,6 @@ void resetHeartData()
   {
     heartData[i] = 0;
   }
-}
-
-float normalizedCrossCorrelation(const byte First[], byte Second[], float whichArray) // takes into account the similarity between the values of two arrays and the order in which those values occur https://en.wikipedia.org/wiki/Cross-correlation
-{
-  float sum1 = 0;
-  float temp = 0;
-  float temp2 = 0;
-  float sqsum1 = 0;
-  float sqsum2 = 0;
-  float Fm = 0;
-  float Sm = 0;
-
-  float result = (sum1 / (sqrt(sqsum1 * sqsum2)));
-  SerialUSB.print("NCC Second & First : ");
-  SerialUSB.println(result);
-  if(isnan(result)) 
-  {
-    SerialUSB.println("error calcualting NCC!!");
-    return 0.5;
-  }
-  return result;
 }
 
 void buzzLRA()
@@ -475,7 +434,7 @@ void buzzLRA()
 
 void checkButtons(unsigned long &screenClearTime)
 {
-  if(display.getButtons(TSButtonUpperLeft) || display.getButtons(TSButtonUpperRight) || display.getButtons(TSButtonLowerLeft) || display.getButtons(TSButtonLowerRight))
+  if(display.getButtons(TSButtonUpperLeft) || display.getButtons(TSButtonLowerLeft) || display.getButtons(TSButtonLowerRight))
   {
   
     int battery = getBattPercent();
@@ -499,8 +458,8 @@ void checkButtons(unsigned long &screenClearTime)
     display.print(":");
     display.println(rtc.getSeconds());
     display.setCursor(0,10);
-    display.print("Movement X: ");
-    display.println(motionX);
+    display.print("Stress Detected: ");
+    display.println(stressDetected);
     display.setCursor(0,20);
     display.print("Movement Y: ");
     display.println(motionY);
@@ -513,6 +472,19 @@ void checkButtons(unsigned long &screenClearTime)
     display.setCursor(0,50);
     display.print("Battery %: ");
     display.println(battery);
+  }
+  else
+  {
+    display.off();
+  }
+}
+
+void stressDetectedButton(unsigned long &screenClearTime)
+{
+  if(display.getButtons(TSButtonUpperRight))
+  {
+  
+    stressDetected = true;
   }
   else
   {
