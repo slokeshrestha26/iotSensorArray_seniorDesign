@@ -28,5 +28,5 @@ void loop(){
 //====================== FUNCITON DEFINITION==================
 void initializeBluetooth(){}
 
-void sendAlert(){}
-void getData(){}
+void sendAlert(){} //needs bluetooth
+void getData(){} //needs bluetooth
