@@ -3,7 +3,6 @@
 %   PRED = CLASSIFY_DATA(DATA) returns 1 if stress is predicted by machine
 %   learning algorithm.
 
-
 % Authors: Sloke Shrestha, Dr. Premananda Indic, Joshua Stapp
 % The University of Texas at Tyler
 % Department of Electrical Engineering
@@ -55,25 +54,21 @@ function prediction = get_prediction(features) %#codegen
     % Returns the prediction of a 5 minute window for the following categories:
     %   Stress = 1
     %   No Stress = 0
+    
+    % raw model output: 
+    %   No Stress    = 2
+    %   Stress       = 3
 
     % Loads models into the workspace
-    ML_CvNS = loadLearnerForCoder('ML_CvNS.mat');
-    ML_CvS  = loadLearnerForCoder('ML_CvS.mat');
-    ML_SvNS = loadLearnerForCoder('ML_SvNS.mat');
+    ML = loadLearnerForCoder('ML_SvNS.mat');
 
-    pred_CNS = char(predict(ML_CvNS,features)); % Predicts Craving vs No Stress
-    pred_CS  = char(predict(ML_CvS,features));  % Predicts Craving vs Stress
-    pred_SNS = char(predict(ML_SvNS,features)); % Predicts Stress vs No Stress
+    pred = char(predict(ML,features)); % Predicts Stress vs No Stress
 
     % Determines dominant prediction using majority-wins rule
-    if (pred_CNS == pred_CS)
-        prediction = int32(1); % Craving
-    elseif (pred_CNS == pred_SNS)
-        prediction = int32(2); % No Stress
-    elseif (pred_SNS == pred_CS)
-        prediction = int32(3); % Stress
+    if (pred == 3)
+        prediction = int32(1); % Stress
     else
-        prediction = int32(0); % Undetermined
+        prediction = int32(0); % No Stress
     end
 end
 
