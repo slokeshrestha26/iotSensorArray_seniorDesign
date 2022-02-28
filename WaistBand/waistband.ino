@@ -30,3 +30,8 @@ void initializeBluetooth(){}
 
 void sendAlert(){} //needs bluetooth
 void getData(){} //needs bluetooth
+
+/*TODO
+1. convert matlab model to c
+2. make sure it compiles
+3. work on bluetooth*/ 
