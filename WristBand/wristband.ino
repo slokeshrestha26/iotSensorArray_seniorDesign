@@ -18,7 +18,7 @@
 //
 //  TinyCircuits http://TinyCircuits.com 
 //-------------------------------------------------------------------------------
-//NEED ALL LIBRARIES
+
 #include <SPI.h>
 #include <TinyScreen.h> // This library is used to print sensor values to a TinyScreen
 #include "BMA250.h" // Used to interface with the acceleromter Wireling, which is used to track your steps
@@ -29,7 +29,25 @@
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
 
-//#include <SD.h> // contains what's needed to find and access SD card.
+//Bluetooth macros
+#include <STBLE.h>
+
+//Debug output adds extra flash and memory requirements!
+#ifndef BLE_DEBUG
+#define BLE_DEBUG true
+#endif
+
+#if defined (ARDUINO_ARCH_AVR)
+#define SerialMonitorInterface Serial
+#elif defined(ARDUINO_ARCH_SAMD)
+#define SerialMonitorInterface SerialUSB
+#endif
+
+
+uint8_t ble_rx_buffer[21];
+uint8_t ble_rx_buffer_len = 0;
+uint8_t ble_connection_state = false;
+#define PIPE_UART_OVER_BTLE_UART_TX_TX 0
 
 Adafruit_DRV2605 drv; // lra sensor object
 MAX30101 pulseSensor = MAX30101(); // pulseOx sensor object
@@ -169,6 +187,10 @@ void setup(void)
   display.setFlip(true);
   display.setFont(thinPixel7_10ptFontInfo);
   display.fontColor(TS_8b_White, background);
+
+
+  //setup bluetooth
+  bluetooth_setup();
 }
 
 //Main function here.
@@ -220,6 +242,8 @@ void loop() {
   
   checkButtons(screenClearTime); // will activate display if user presses any button except top right
   stressDetectedButton(screenClearTime); // will activate display if user presses top right button
+
+  bluetooth_loop();
 }
 
 void updateTime(uint8_t * b) {
@@ -491,3 +515,43 @@ void stressDetectedButton(unsigned long &screenClearTime)
     display.off();
   }
 }
+
+void bluetooth_setup(){
+  // BLE  setup routine to be called in the setup section
+  SerialMonitorInterface.begin(9600);
+  BLEsetup();
+
+}
+
+
+void bluetooth_loop() {
+  aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
+  if (ble_rx_buffer_len) {//Check if data is available
+    SerialMonitorInterface.print(ble_rx_buffer_len);
+    SerialMonitorInterface.print(" : ");
+    SerialMonitorInterface.println((char*)ble_rx_buffer);
+    ble_rx_buffer_len = 0;//clear afer reading
+  }
+  if (SerialMonitorInterface.available()) {//Check if serial input is available to send
+    delay(10);//should catch input
+    uint8_t sendBuffer[21];
+    uint8_t sendLength = 0;
+    while (SerialMonitorInterface.available() && sendLength < 19) {
+      sendBuffer[sendLength] = SerialMonitorInterface.read();
+      sendLength++;
+    }
+    if (SerialMonitorInterface.available()) {
+      SerialMonitorInterface.print(F("Input truncated, dropped: "));
+      if (SerialMonitorInterface.available()) {
+        SerialMonitorInterface.write(SerialMonitorInterface.read());
+      }
+    }
+    sendBuffer[sendLength] = '\0'; //Terminate string
+    sendLength++;
+    if (!lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength))
+    {
+      SerialMonitorInterface.println(F("TX dropped!"));
+    }
+  }
+}
+
