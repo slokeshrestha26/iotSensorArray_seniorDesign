@@ -19,20 +19,6 @@
 //  TinyCircuits http://TinyCircuits.com 
 //-------------------------------------------------------------------------------
 
-#include <SPI.h>
-#include <TinyScreen.h> // This library is used to print sensor values to a TinyScreen
-#include "BMA250.h" // Used to interface with the acceleromter Wireling, which is used to track your steps
-#include <Wire.h>
-#include <Wireling.h>
-#include "Adafruit_DRV2605.h" // used to interface with the LRA Wireling
-#include <SdFat.h> // enables data to be logged to an sd card
-#include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
-#include <MAX30101.h> // used to interface with the pulse oximetry sensor
-
-//Bluetooth macros
-#include <STBLE.h>
-
-//Debug output adds extra flash and memory requirements!
 #ifndef BLE_DEBUG
 #define BLE_DEBUG true
 #endif
@@ -42,19 +28,31 @@
 #elif defined(ARDUINO_ARCH_SAMD)
 #define SerialMonitorInterface SerialUSB
 #endif
+#define PIPE_UART_OVER_BTLE_UART_TX_TX 0
+#define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
 
+#include <SPI.h>
+#include <TinyScreen.h> // This library is used to print sensor values to a TinyScreen
+#include "BMA250.h" // Used to interface with the acceleromter Wireling, which is used to track your steps
+#include <Wire.h>
+#include <Wireling.h>
+#include "Adafruit_DRV2605.h" // used to interface with the LRA Wireling
+#include <SdFat.h> // enables data to be logged to an sd card
+#include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
+#include <MAX30101.h> // used to interface with the pulse oximetry sensor
+#include <STBLE.h> //BLE library
+#include <RTCZero.h>
 
 uint8_t ble_rx_buffer[21];
 uint8_t ble_rx_buffer_len = 0;
 uint8_t ble_connection_state = false;
-#define PIPE_UART_OVER_BTLE_UART_TX_TX 0
+
 
 Adafruit_DRV2605 drv; // lra sensor object
 MAX30101 pulseSensor = MAX30101(); // pulseOx sensor object
 BMA250 accel_sensor; // accelerometer sensor object
 
 // SD card variables
-#define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
 char fileName[13] = FILE_BASE_NAME;
 SdFat SD; // File system object.
 SdFile file; // Log file.
@@ -101,7 +99,6 @@ unsigned long loopStart = 0;
 uint32_t doVibrate = 0;
 bool firstSD = true;
 
-#include <RTCZero.h>
 RTCZero rtc;
 
 // heart rate variables
@@ -129,25 +126,13 @@ void stressDetectedButton(unsigned long &screenClearTime);
 
 void setup(void)
 {
-  SerialUSB.begin(115200);
   delay(5000); // replaces the above
   Wire.begin();
   Wireling.begin();
 
-  // Check for SD card
-  SerialUSB.println("Initializing SD card...");
-  if (SD.begin())
+  // Check for SD card. If not initialized, terminate to infinite loop
+  if (!SD.begin())
   {
-    SerialUSB.println("card initialized.");
-
-    SerialUSB.print(F("Logging to: "));
-    SerialUSB.println(fileName);
-    SerialUSB.println();
-  }
-  else
-  {
-    SerialUSB.println("SD Card not found, exiting program!");
-    SerialUSB.println();
     delay(5000);
     while (1);
   }
@@ -317,10 +302,6 @@ float getVCC() {
 float getBattPercent()
 {
   float batteryLeft = max((getBattVoltage() - 3.00), 0);
-  if (DEBUG_MD) {
-    SerialUSB.print("battery left: ");
-    SerialUSB.println(min(batteryLeft * 83.333333, 100));
-  }
   return min((batteryLeft * 83.333333), 100); // hard upper limit of 100 as it often shows over 100 when charging
 }
 
@@ -346,18 +327,8 @@ int updatePedometer() {
 
 void validateSD(String dataString, String displayString, bool firstSD)
 {
-  if (!file.open(fileName, O_CREAT | O_RDWR | O_APPEND)) {
-    SerialUSB.println("File open error!");
-  }
-  else
-  {
-    // if the file is available, write to it:
+  if (file.open(fileName, O_CREAT | O_RDWR | O_APPEND)) {
     logData(dataString, displayString);
-  }
-
-  // Force data to SD and update the directory entry to avoid data loss.
-  if (!file.sync() || file.getWriteError()) {
-    SerialUSB.println("write error");
   }
   file.close();
 }
@@ -370,9 +341,6 @@ void logData(String dataString, String displayString) {
   for (uint8_t i = 0; i < ANALOG_COUNT; i++) {
     data[i] = analogRead(i);
   }
-  if (DEBUG_MD) {
-    SerialUSB.println("WRITING TO FILE!!");
-  }
  if (firstSD)
   {
     file.println(displayString);
@@ -380,11 +348,6 @@ void logData(String dataString, String displayString) {
   }
   else if (firstSD == false) {
     file.println(dataString);
-  }
-  if (DEBUG_MD) {
-    SerialUSB.println("WRITING Complete!");
-    SerialUSB.print("dataString: ");
-    SerialUSB.println(dataString);
   }
 }
 
@@ -551,14 +514,13 @@ void bluetooth_loop() {
   //   if (!lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength))
   //   {
   //     SerialMonitorInterface.println(F("TX dropped!"));
- if (SerialMonitorInterface.available()){//Check if serial input is available to send
+
     delay(10);//should catch input
-    uint8_t sendBuffer[21];
+    uint8_t sendBuffer[21] = {'0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9', '\0'};
     uint8_t sendLength = 20;
 
-    sendBuffer = {'0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9','\0'}
-    lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength))
- }
+    lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength);
+
 
 }
 
