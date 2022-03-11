@@ -95,6 +95,11 @@ int motionX = 0; // x axis motion
 int motionY = 0; // y axis motion
 int motionZ = 0; // z axis motion
 
+int arrayLength = 20;                      //The size of the block
+String blockArrayData[arrayLength] = {};   //Each index of this array will be a time of data
+String blockDataLoadEntry = "";            //String that will be loaded into the block array
+int count = 0;                             //Tracking at what point the program is in the array
+
 bool stressDetected = false;
 
 int stepArr[4] = {};
@@ -108,6 +113,7 @@ void checkButtons(unsigned long &screenClearTime);
 float normalizedCrossCorrelation(const byte First[], byte Second[], float whichArray);
 void checkPulse();
 void stressDetectedButton(unsigned long &screenClearTime);
+void stringBlockDataLoad();
 
 void setup(void)
 {
@@ -220,6 +226,16 @@ void loop() {
   
   checkButtons(screenClearTime); // will activate display if user presses any button except top right
   stressDetectedButton(screenClearTime); // will activate display if user presses top right button
+  if(count < arrayLength){
+    stringBlockDataLoad(); //Loads the data into a string file for loading into the block array of data
+    blockArrayData[count] = blockDataLoadEntry;
+    count++;
+  }
+  else{
+    //Send data through bluetooth
+    count = 0;
+  }
+  
 }
 
 void updateTime(uint8_t * b) {
@@ -490,4 +506,15 @@ void stressDetectedButton(unsigned long &screenClearTime)
   {
     display.off();
   }
+}
+
+void StringBlockDataLoad(){
+  blockDataLoadEntry = "";
+  blockDataLoadEntry += String(beatAvg);
+  blockDataLoadEntry += ", ";
+  blockDataLoadEntry += String(motionX);
+  blockDataLoadEntry += ", ";
+  blockDataLoadEntry += String(motionY);
+  blockDataLoadEntry += ", ";
+  blockDataLoadEntry += String(motionZ);
 }
