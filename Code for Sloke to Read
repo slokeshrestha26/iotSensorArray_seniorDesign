@@ -1,0 +1,74 @@
+//Strings that will be sent via bluetooth containing data for heart rate and accelerometer and time stamp
+String heartData = "";
+String xData = "";
+String yData = "";
+String zData = "";
+String timeData = "";
+String dateData = "";
+
+//Functions that will add the data to strings that are sent via bluetooth
+void getHeartData();
+void getXData();
+void getYData();
+void getZData();
+void getTimeStamp();
+
+void loadData(){
+  unsigned long oldEpoch = 0;
+  unsigned long epoch = rtc.getEpoch();
+
+//Forces the heart rate to be taken once per second and not any faster
+  if(epoch > oldEpoch){
+    getHeartData();
+    oldEpoch = epoch;
+  }
+
+//gets and stores data every iteration
+  getXData();
+  getYData();
+  getZData();
+  getTimeStamp();
+}
+
+//Gets the data for heart beat and stores data in a string
+void getHeartData(){
+  heartData += String(beatAvg);
+  heartData += " ";
+}
+
+//Gets the data for X G and stores data in a string
+void getXData(){
+  xData += String(motionX);
+  xData += " ";
+}
+
+//Gets the data for Y G and stores data in a string
+void getYData(){
+  yData += String(motionY);
+  yData += " ";
+}
+
+//Gets the data for Z G and Stores data in a string
+void getZData(){
+  zData += String(motionZ);
+  zData += " ";
+}
+
+//Gets the Month/Date/Year and stores into a string along with Hour:Minute:Second
+void getTimeStamp(){
+//Adds the date time stamp
+  dateData += String(rtc.getMonth());
+  dateData += "/";
+  dateData += String(rtc.getDay());
+  dateData += "/";
+  dateData += String(rtc.getYear());
+  dateData += " ";
+
+//Adds the time of day time stamp
+  timeData += String(rtc.getHours());
+  timeData += ":";
+  timeData += String(rtc.getMinutes());
+  timeData += ":";
+  timeData += String(rtc.getSeconds());
+  timeData += " ";
+}
