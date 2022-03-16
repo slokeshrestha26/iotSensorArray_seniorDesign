@@ -157,7 +157,6 @@ void initialize_accelerometer();
 void initialize_pulse_sensor();
 void initialize_rtc();
 void initialize_display();
-void initialize_wireling();
 
 /*==================================MAIN SETUP AND LOOP==========================================*/
 void setup(void)
@@ -186,19 +185,6 @@ void loop() {
   static int emptyIntsCounter = 0;
   static unsigned long screenClearTime = millis();
   static int currentHour = rtc.getHours(); // performance optimization
-  static bool validatedPreviously = false; // avoids the need to constantly validate whether it is past bedtime or not by store the fact within this variable.
-  
-  // NEED TO CHECK AND SEE IF THESE ARE STILL PRESENT AFTER REMOVING THE OBVIOUS  
-  // note that the many areas of the sketch are not executed except at night when calculating or recording sleep quality.
-  static unsigned long batt = millis(); // used to check the battery voltage and run some other code every data reporting inverval, default 30 seconds
-  static unsigned long goalTimer = millis(); // used to check if you are meeting your daily goals
-  static int heartIndex = 0;
-  // these variables are used to keep track of how many steps were taken in recent minutes
-  static unsigned long one = millis();
-  static unsigned long two = millis();
-  static unsigned long five = millis();
-  static unsigned long fifteen = millis();
-  static unsigned long oneMinute = millis();
   
   Wireling.selectPort(pulseSensorPort);  
   checkPulse();
@@ -213,13 +199,6 @@ void loop() {
       heartData[heartIndex] = pulseSensor.BPM();
       ++heartIndex;
     }
-  }
-
-  if (millis() - oneMinute > 60000)
-  {
-  
-  oneMinute = millis();
-  
   }
 
   if(stressDetected){
