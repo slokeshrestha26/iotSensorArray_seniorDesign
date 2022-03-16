@@ -1,3 +1,20 @@
+/* Wristband Sketch for Wearable Physiology Monitoring Framework
+
+Most of the inspiration for this sketch was taken from Fitness Tracker Sketch from TinyCircuits. Mode details are
+available below. 
+
+Wearable Physiology Monitoring Framework has two mode of operations: inference mode and data aquisition. 
+Inference mode collects the data from the wrist band and sends it to the waistband for further processing. 
+
+
+
+Written by Sloke Shrestha, Lloyd McGrath, Cody Conder Fall 2021 and Spring 2022
+at University of Texas at Tyler, Tyler, USA. 
+
+This sketch is written for the senior design project for Department of Electrical Engineering 
+at UT Tyler https://www.uttyler.edu/electrical-engineering/ */
+
+
 //-------------------------------------------------------------------------------
 //  Fitness Tracker Sketch
 //
@@ -19,18 +36,6 @@
 //  TinyCircuits http://TinyCircuits.com 
 //-------------------------------------------------------------------------------
 
-#ifndef BLE_DEBUG
-#define BLE_DEBUG true
-#endif
-
-#if defined (ARDUINO_ARCH_AVR)
-#define SerialMonitorInterface Serial
-#elif defined(ARDUINO_ARCH_SAMD)
-#define SerialMonitorInterface SerialUSB
-#endif
-#define PIPE_UART_OVER_BTLE_UART_TX_TX 0
-#define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
-
 #include <SPI.h>
 #include <TinyScreen.h> // This library is used to print sensor values to a TinyScreen
 #include "BMA250.h" // Used to interface with the acceleromter Wireling, which is used to track your steps
@@ -43,14 +48,30 @@
 #include <STBLE.h> //BLE library
 #include <RTCZero.h>
 
+// inference mode preprocessor directives
+#ifndef BLE_DEBUG
+#define BLE_DEBUG true
+#endif
+
+#if defined (ARDUINO_ARCH_AVR)
+#define SerialMonitorInterface Serial
+#elif defined(ARDUINO_ARCH_SAMD)
+#define SerialMonitorInterface SerialUSB
+#endif
+#define PIPE_UART_OVER_BTLE_UART_TX_TX 0
+
+// SD card directive
+#define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
+
+
+// global variable for inference mode flag
+volatile uint8_t INFERENCE_MODE = 1; //flag for inference mode (default is 1)
+
+// inference mode variables
 uint8_t ble_rx_buffer[21];
 uint8_t ble_rx_buffer_len = 0;
 uint8_t ble_connection_state = false;
 
-
-Adafruit_DRV2605 drv; // lra sensor object
-MAX30101 pulseSensor = MAX30101(); // pulseOx sensor object
-BMA250 accel_sensor; // accelerometer sensor object
 
 // SD card variables
 char fileName[13] = FILE_BASE_NAME;
@@ -59,8 +80,12 @@ SdFile file; // Log file.
 SdFile quartiles; // keeps track of your historical heart rate during sleep, which is used in the sleep quality calculation
 
 const uint8_t ANALOG_COUNT = 4;
-
 const int chipSelect = 10;
+
+Adafruit_DRV2605 drv; // lra sensor object
+MAX30101 pulseSensor = MAX30101(); // pulseOx sensor object
+BMA250 accel_sensor; // accelerometer sensor object
+
 
 // TinyScreen Global Variables
 TinyScreen display = TinyScreen(TinyScreenPlus);
@@ -106,14 +131,14 @@ const byte RATE_SIZE = DATA_INTERVAL * 100; // Based on the data interval. this 
 byte rates[RATE_SIZE]; //heartDataay of heart rates
 int beatAvg = 0; // represents the average heart rate over the DATA_INTERVAL
 
+// acc variables
 int motionX = 0; // x axis motion
 int motionY = 0; // y axis motion
 int motionZ = 0; // z axis motion
 
 bool stressDetected = false;
 
-int stepArr[4] = {};
-
+/*/*==================================Fuction prototype/*==================================*/
 bool validatePorts();
 int updatePedometer();
 void createString(String &, String &, bool , int , bool &);
@@ -124,61 +149,37 @@ float normalizedCrossCorrelation(const byte First[], byte Second[], float whichA
 void checkPulse();
 void stressDetectedButton(unsigned long &screenClearTime);
 
+void initialize_wireling();
+void initialize_sd_card();
+void intialize_bluetooth();
+void intialize_lrasensor();
+void initialize_accelerometer();
+void initialize_pulse_sensor();
+void initialize_rtc();
+void initialize_display();
+void initialize_wireling();
+
+/*==================================MAIN SETUP AND LOOP==========================================*/
 void setup(void)
 {
-  delay(5000); // replaces the above
-  Wire.begin();
-  Wireling.begin();
-
-  // Check for SD card. If not initialized, terminate to infinite loop
-  if (!SD.begin())
-  {
-    delay(5000);
-    while (1);
+  if (INFERENCE_MODE){
+    //initialize bluetooth
+    intialize_bluetooth();
   }
-  
-  if (lraSensorPort) {
-    drv.begin();
-    drv.selectLibrary(1);
-    drv.setMode(DRV2605_MODE_INTTRIG);
-    drv.useLRA();
+  else{
+    // intialize sd card
+    initialize_sd_card();
   }
 
-  if (accelSensorPort) {
-    // Set the cursor to the following coordinates before it prints "BMA250 Test"
-    Wireling.selectPort(accelSensorPort);
-    accel_sensor.begin(BMA250_range_4g, BMA250_update_time_16ms); // Sets up the BMA250 accel_sensorerometer
-  }
-
-  if (pulseSensorPort)
-  {
-    Wireling.selectPort(pulseSensorPort);
-    pulseSensor.begin(); //Configure sensor with default settings
-  }
-
-  rtc.begin();
-  rtc.setTime(hours, minutes, seconds);//h,m,s
-  rtc.setDate(day, month, year);//d,m,y
-//unsure how getEpoch is being displayed on excel file, but it is important in settting the date and time
-  unsigned long tempEpoch = rtc.getEpoch();
-  int tempHour = rtc.getHours();
-  int tempMinute = rtc.getMinutes();
-  
-  rtc.setEpoch(tempEpoch); // reset back to current time
-  
-  // This is the setup used to initialize the TinyScreen's appearance GUI this is important.
-  display.begin();
-  display.setBrightness(15);
-  display.setFlip(true);
-  display.setFont(thinPixel7_10ptFontInfo);
-  display.fontColor(TS_8b_White, background);
-
-
-  //setup bluetooth
-  bluetooth_setup();
+  intialize_lrasensor();
+  initialize_accelerometer();
+  initialize_pulse_sensor();
+  initialize_rtc();
+  initialize_display();
+  initialize_wireling();
 }
 
-//Main function here.
+
 void loop() {
   String displayString = ""; // written once in the logfile to provide column headings along with the data
   String dataString = ""; // written to the logfile every data interval seconds. does not contain headings, just csv data only. see createstring for more details
@@ -230,6 +231,9 @@ void loop() {
 
   bluetooth_loop();
 }
+
+
+/*==================================FUNCITON DEFINITIONS==========================================*/
 
 void updateTime(uint8_t * b) {
   int y, M, d, k, m, s;
@@ -479,48 +483,89 @@ void stressDetectedButton(unsigned long &screenClearTime)
   }
 }
 
-void bluetooth_setup(){
+void intialize_bluetooth(){
   // BLE  setup routine to be called in the setup section
   SerialMonitorInterface.begin(9600);
+  while(!SerialMonitorInterface);
   BLEsetup();
 
 }
 
 
 void bluetooth_loop() {
+
   aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
-  // if (ble_rx_buffer_len) {//Check if data is available
-  //   SerialMonitorInterface.print(ble_rx_buffer_len);
-  //   SerialMonitorInterface.print(" : ");
-  //   SerialMonitorInterface.println((char*)ble_rx_buffer);
-  //   ble_rx_buffer_len = 0;//clear afer reading
-  // }
-  // if (SerialMonitorInterface.available()) {//Check if serial input is available to send
-  //   delay(10);//should catch input
-  //   uint8_t sendBuffer[21];
-  //   uint8_t sendLength = 0;
-  //   while (SerialMonitorInterface.available() && sendLength < 19) {
-  //     sendBuffer[sendLength] = SerialMonitorInterface.read();
-  //     sendLength++;
-  //   }
-  //   if (SerialMonitorInterface.available()) {
-  //     SerialMonitorInterface.print(F("Input truncated, dropped: "));
-  //     if (SerialMonitorInterface.available()) {
-  //       SerialMonitorInterface.write(SerialMonitorInterface.read());
-  //     }
-  //   }
-  //   sendBuffer[sendLength] = '\0'; //Terminate string
-  //   sendLength++;
-  //   if (!lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength))
-  //   {
-  //     SerialMonitorInterface.println(F("TX dropped!"));
+  delay(10);//should catch input
+  uint8_t sendBuffer[21] = {'0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9', '\0'};
+  uint8_t sendLength = 20;
 
-    delay(10);//should catch input
-    uint8_t sendBuffer[21] = {'0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9', '\0'};
-    uint8_t sendLength = 20;
+  lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength);
+}
 
-    lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength);
+void initialize_sd_card(){
+  // Check for SD card. If not initialized, terminate to infinite loop
+  if (!SD.begin())
+  {
+    delay(5000);
+    while (1);
+  }
+}
 
+void intialize_lrasensor(){
+  // Initialize lrasensor
+  if (lraSensorPort) {
+    drv.begin();
+    drv.selectLibrary(1);
+    drv.setMode(DRV2605_MODE_INTTRIG);
+    drv.useLRA();
+  }
+}
+
+void initialize_accelerometer(){
+  // Initialize accelerometer
+  if (accelSensorPort) {
+    // Set the cursor to the following coordinates before it prints "BMA250 Test"
+    Wireling.selectPort(accelSensorPort);
+    accel_sensor.begin(BMA250_range_4g, BMA250_update_time_16ms); // Sets up the BMA250 accel_sensorerometer
+  }
+}
+
+void initialize_pulse_sensor(){
+  // Initialize pulseoximeter
+  if (pulseSensorPort)
+  {
+    Wireling.selectPort(pulseSensorPort);
+    pulseSensor.begin(); //Configure sensor with default settings
+  }
 
 }
 
+void initialize_rtc(){
+  //initialize RTC
+  rtc.begin();
+  rtc.setTime(hours, minutes, seconds);//h,m,s
+  rtc.setDate(day, month, year);//d,m,y
+  //unsure how getEpoch is being displayed on excel file, but it is important in settting the date and time
+  unsigned long tempEpoch = rtc.getEpoch();
+  int tempHour = rtc.getHours();
+  int tempMinute = rtc.getMinutes();
+  
+  rtc.setEpoch(tempEpoch); // reset back to current time
+
+}
+
+void initialize_display(){
+  // Setup used to initialize the TinyScreen's appearance GUI.
+  display.begin();
+  display.setBrightness(15);
+  display.setFlip(true);
+  display.setFont(thinPixel7_10ptFontInfo);
+  display.fontColor(TS_8b_White, background);
+}
+
+void initialize_wireling(){
+  // Initialized wire and wireling classes for the sensors
+  delay(5000); // replaces the above
+  Wire.begin();
+  Wireling.begin();
+}
