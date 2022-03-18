@@ -139,6 +139,9 @@ int motionZ = 0; // z axis motion
 //count iterations since last heart rate storage
 int itCount = 26;
 
+//shows a 0 if no stress detected and a 1 if stress is detected, Default is 0
+int stressDetected = 0;
+
 /*/*==================================Fuction prototype/*==================================*/
 bool validatePorts();
 int updatePedometer();
@@ -164,6 +167,8 @@ void getYData(String &);
 void getZData(String &);
 void getTimeStamp(String &);
 void getData(String &, String &, String &, String &, String &);
+
+void displayStress(unsigned long &);
 
 /*==================================MAIN SETUP AND LOOP==========================================*/
 void setup(void)
@@ -224,6 +229,13 @@ void loop() {
     checkButtons(screenClearTime); // will activate display if user presses any button except top right
   
     bluetooth_loop();
+
+    //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress
+
+    //Only display that you are feeling stressed if you are feeling stressed
+    if(stressDetected){
+      displayStress(screenClearTime);
+    }
   }
   //Send heartData, xData, yData, zData, & epochTime
 }
@@ -588,4 +600,29 @@ void getData(String &heartData, String &xData, String &yData, String &zData, Str
   getYData(yData);
   getZData(zData);
   getTimeStamp(epochTime);
+}
+
+void displayStress(unsigned long &screenClearTime)
+{ 
+  int battery = getBattPercent();
+  
+  if(rtc.getSeconds() == 0 && millis()-screenClearTime > 1000){
+    display.clearScreen();
+    screenClearTime = millis();
+  }
+  
+  display.on();
+  display.setCursor(0,0);
+  display.print("Stress Detected");
+  display.setCursor(0,10);
+  display.print("Please Breath: Inhale");
+  delay(10000);
+  display.setCursor(0,20);
+  display.print("1");
+  delay(10000);
+  display.setCursor(0,30);
+  display.print("2");
+  delay(10000);
+  display.setCursor(0,40);
+  display.print("3: Exhale");
 }
