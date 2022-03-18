@@ -60,10 +60,6 @@ at UT Tyler https://www.uttyler.edu/electrical-engineering/ */
 #endif
 #define PIPE_UART_OVER_BTLE_UART_TX_TX 0
 
-// SD card directive
-#define FILE_BASE_NAME "worktst.csv" // Log file base name.  Must be 13 characters or less.
-
-
 // global variable for inference mode flag
 volatile uint8_t INFERENCE_MODE = 1; //flag for inference mode (default is 1)
 
@@ -71,13 +67,6 @@ volatile uint8_t INFERENCE_MODE = 1; //flag for inference mode (default is 1)
 uint8_t ble_rx_buffer[21];
 uint8_t ble_rx_buffer_len = 0;
 uint8_t ble_connection_state = false;
-
-
-// SD card variables
-char fileName[13] = FILE_BASE_NAME;
-SdFat SD; // File system object.
-SdFile file; // Log file.
-SdFile quartiles; // keeps track of your historical heart rate during sleep, which is used in the sleep quality calculation
 
 const uint8_t ANALOG_COUNT = 4;
 const int chipSelect = 10;
@@ -145,15 +134,11 @@ int stressDetected = 0;
 /*/*==================================Fuction prototype/*==================================*/
 bool validatePorts();
 int updatePedometer();
-void createString(String &, String &, bool , int , bool &);
-void validateSD(String , String , bool );
 void buzzLRA();
 void checkButtons(unsigned long &screenClearTime);
-float normalizedCrossCorrelation(const byte First[], byte Second[], float whichArray);
 void checkPulse();
 
 void initialize_wireling();
-void initialize_sd_card();
 void intialize_bluetooth();
 void intialize_lrasensor();
 void initialize_accelerometer();
@@ -177,10 +162,6 @@ void setup(void)
     //initialize bluetooth
     intialize_bluetooth();
   }
-  else{
-    // intialize sd card
-    initialize_sd_card();
-  }
 
   intialize_lrasensor();
   initialize_accelerometer();
@@ -192,8 +173,7 @@ void setup(void)
 
 
 void loop() {
-  String displayString = ""; // written once in the logfile to provide column headings along with the data
-  String dataString = ""; // written to the logfile every data interval seconds. does not contain headings, just csv data only. see createstring for more details
+  
   static int emptyIntsCounter = 0;
   static unsigned long screenClearTime = millis();
   static int currentHour = rtc.getHours(); // performance optimization
@@ -216,8 +196,6 @@ void loop() {
     
     Wireling.selectPort(accelSensorPort);
     updatePedometer();
-    createString(displayString, dataString, firstSD, currentHour); //create strings from recent data
-    validateSD(dataString, displayString, firstSD); // write the strings to the SD card after validating the connection to the SD card is intact
     if(pulseSensor.update()){
       if (pulseSensor.pulseValid()) {
         beatAvg = pulseSensor.BPM();
@@ -242,33 +220,6 @@ void loop() {
 
 
 /*==================================FUNCITON DEFINITIONS==========================================*/
-
-void updateTime(uint8_t * b) {
-  int y, M, d, k, m, s;
-  char * next;
-  y = strtol((char *)b, &next, 10);
-  M = strtol(next, &next, 10);
-  d = strtol(next, &next, 10);
-  k = strtol(next, &next, 10);
-  m = strtol(next, &next, 10);
-  s = strtol(next, &next, 10);
-#if defined (ARDUINO_ARCH_AVR)
-  setTime(k, m, s, d, M, y);
-#elif defined(ARDUINO_ARCH_SAMD)
-  rtc.setTime(k, m, s);
-  rtc.setDate(d, M, y - 2000);
-#endif
-}
-
-int minutesMS(int input)
-{
-  return input * 60000;
-}
-
-int minutesLeftInHour()
-{
-  return 60 - rtc.getMinutes();
-}
 
 // Calculate the battery voltage
 float getBattVoltage(void) {
@@ -335,75 +286,6 @@ int updatePedometer() {
   motionY = accel_sensor.Y;
   motionZ = accel_sensor.Z;
 
-}
-
-void validateSD(String dataString, String displayString, bool firstSD)
-{
-  if (file.open(fileName, O_CREAT | O_RDWR | O_APPEND)) {
-    logData(dataString, displayString);
-  }
-  file.close();
-}
-
-// Log a data record.
-void logData(String dataString, String displayString) {
-  uint16_t data[ANALOG_COUNT];
-
-  // Read all channels to avoid SD write latency between readings.
-  for (uint8_t i = 0; i < ANALOG_COUNT; i++) {
-    data[i] = analogRead(i);
-  }
- if (firstSD)
-  {
-    file.println(displayString);
-    firstSD = false;
-  }
-  else if (firstSD == false) {
-    file.println(dataString);
-  }
-}
-
-void createString(String &displayString, String &dataString, bool firstSD, int currentHour) {
-  unsigned long epoch = rtc.getEpoch();
-  
-  int battery = getBattPercent();
-  if (firstSD) // only the first line will look like this so that you know what data is in each column
-  {
-    displayString += "epochTime: ";
-    displayString += String(epoch);
-    displayString += ",";
-    displayString += " pulse: ";
-    displayString += String(beatAvg); // represents the average pulse recorded since the last time file was written to
-    displayString += ",";
-    
-    Wireling.selectPort(pulseSensorPort);
-    displayString += " X axis Position: ";
-    displayString += String(motionX);
-    displayString += ",";
-    displayString += " Y axis Position: ";
-    displayString += String(motionY);
-    displayString += ",";    
-    displayString += " Z axis Position ";
-    displayString += String(motionZ);
-    displayString += ",";
-    Wireling.selectPort(accelSensorPort);
-  }
-  else
-  {
-    dataString += String(epoch);
-    dataString += ",";
-    dataString += String(beatAvg);
-    dataString += ",";
-    
-    Wireling.selectPort(pulseSensorPort);
-    Wireling.selectPort(accelSensorPort);
-    dataString += String(motionX);
-    dataString += ",";
-    dataString += String(motionY);
-    dataString += ",";    
-    dataString += String(motionZ);   
-    dataString += ",";
-  }
 }
 
 void resetHeartData()
@@ -490,15 +372,6 @@ void bluetooth_loop() {
   uint8_t sendLength = 20;
 
   lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength);
-}
-
-void initialize_sd_card(){
-  // Check for SD card. If not initialized, terminate to infinite loop
-  if (!SD.begin())
-  {
-    delay(5000);
-    while (1);
-  }
 }
 
 void intialize_lrasensor(){
@@ -606,6 +479,8 @@ void displayStress(unsigned long &screenClearTime)
 { 
   int battery = getBattPercent();
   
+  buzzLRA();
+
   if(rtc.getSeconds() == 0 && millis()-screenClearTime > 1000){
     display.clearScreen();
     screenClearTime = millis();
