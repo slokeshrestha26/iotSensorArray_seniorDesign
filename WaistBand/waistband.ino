@@ -1,8 +1,8 @@
 #include "classify_data.h"
 
 // length of data in an array
-#define DATA_LENGTH_ACC 9600
-#define DATA_LENGTH_HR 60
+#define DATA_LENGTH_ACC 7800
+#define DATA_LENGTH_HR 300
 
 #define STRESS_CLASS 1 //if the classification is 1, then this signifies that stress was detected.
 
