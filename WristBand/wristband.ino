@@ -126,7 +126,7 @@ int motionY = 0; // y axis motion
 int motionZ = 0; // z axis motion
 
 //count iterations since last heart rate storage
-int itCount = 26;
+int hertzCount = 26;
 
 //shows a 0 if no stress detected and a 1 if stress is detected, Default is 0
 int stressDetected = 0;
@@ -145,13 +145,6 @@ void initialize_accelerometer();
 void initialize_pulse_sensor();
 void initialize_rtc();
 void initialize_display();
-
-void getHeartData(String &);
-void getXData(String &);
-void getYData(String &);
-void getZData(String &);
-void getTimeStamp(String &);
-void getData(String &, String &, String &, String &, String &);
 
 void displayStress(unsigned long &);
 
@@ -178,18 +171,16 @@ void loop() {
   static unsigned long screenClearTime = millis();
   static int currentHour = rtc.getHours(); // performance optimization
 
-  static int heartIndex = 0;
+  int heartIndex = 0;
 
   //Strings that will be sent via bluetooth containing data for heart rate and accelerometer and time stamp
-  String heartData = "";
-  String xData = "";
-  String yData = "";
-  String zData = "";
-  String epochTime = "";
+  int heartData[60] = [];
+  int xData[1560] = [];
+  int yData[1560] = [];
+  int zData[1560] = [];
+  unsigned long epochTime[1560] = [];
 
   for(int i=0; i<=1560; i++){
-    //Stores all data into a string to send to the waistband
-    getData(heartData, xData, yData, zData, epochTime);
     
     Wireling.selectPort(pulseSensorPort);  
     checkPulse();
@@ -205,6 +196,19 @@ void loop() {
     }
     
     checkButtons(screenClearTime); // will activate display if user presses any button except top right
+
+    //Storing every iteration of data
+    if(hertzCount > 26){
+      heartData[heartIndex] = beatAvg;
+      hertzCount = 0;
+      heartIndex++;
+    }
+    else{
+      hertzCount++;
+    }
+    xData[i] = motionX;
+    yData[i] = motionY;
+    zData[i] = motionZ;
   
     bluetooth_loop();
 
@@ -336,6 +340,8 @@ void checkButtons(unsigned long &screenClearTime)
     display.print(":");
     display.println(rtc.getSeconds());
     display.setCursor(0,10);
+    display.print("Movement X: ");
+    display.println(motionX);
     display.setCursor(0,20);
     display.print("Movement Y: ");
     display.println(motionY);
@@ -431,48 +437,6 @@ void initialize_wireling(){
   delay(5000); // replaces the above
   Wire.begin();
   Wireling.begin();
-}
-
-void getHeartData(String &heartData){
-  heartData += String(beatAvg);
-  heartData += " ";
-}
-
-void getXData(String &xData){
-  xData += String(motionX);
-  xData += " ";
-}
-
-void getYData(String &yData){
-  yData += String(motionY);
-  yData += " ";
-}
-
-void getZData(String &zData){
-  zData += String(motionZ);
-  zData += " ";
-}
-
-void getTimeStamp(String &epochTime){
-//Adds the date time stamp
-  unsigned long epoch = rtc.getEpoch();
-  epochTime += String(epoch);
-  epochTime += " ";
-}
-
-void getData(String &heartData, String &xData, String &yData, String &zData, String &epochTime){
-  if(itCount >=26){
-    getHeartData(heartData);
-    itCount = 0;
-  }
-  else{
-    itCount++;
-  }
-  
-  getXData(xData);
-  getYData(yData);
-  getZData(zData);
-  getTimeStamp(epochTime);
 }
 
 void displayStress(unsigned long &screenClearTime)
