@@ -1,3 +1,11 @@
+/* This sketch implements the waistband module of the wearable framework
+
+Authors: Sloke Shrestha, Lloyd McGrath, Cody Conder
+
+University of Texas at Tyler © 2022. 
+Senior Design Project
+
+*/
 #include "classify_data.h"
 
 // length of data in an array
@@ -52,7 +60,7 @@ int minute5DataZ[1560] = [];
 int minute5DataHR[60] = [];
 int minute5DataEpoch[1560] = [];
 
-//blocks of data for ML
+//blocks of data for ML. This array goes directly to the classification subroutine.
 int mlDataX[23700] = [];
 
 void setup()
