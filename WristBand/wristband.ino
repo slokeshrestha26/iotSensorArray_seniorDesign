@@ -465,3 +465,90 @@ void displayStress(unsigned long &screenClearTime)
   display.setCursor(0,40);
   display.print("3: Exhale");
 }
+
+void intialize_bluetooth(){
+  // BLE  setup routine to be called in the setup section
+  SerialMonitorInterface.begin(9600);
+  while(!SerialMonitorInterface);
+  BLEsetup();
+
+}
+
+
+void bluetooth_loop() {
+
+  aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
+  delay(10);//should catch input
+  uint8_t sendBuffer[21] = {'0','1','2','3','4','5','6','7','8','9','0','1','2','3','4','5','6','7','8','9', '\0'};
+  uint8_t sendLength = 20;
+
+  lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)sendBuffer, sendLength);
+}
+
+void initialize_sd_card(){
+  // Check for SD card. If not initialized, terminate to infinite loop
+  if (!SD.begin())
+  {
+    delay(5000);
+    while (1);
+  }
+}
+
+void intialize_lrasensor(){
+  // Initialize lrasensor
+  if (lraSensorPort) {
+    drv.begin();
+    drv.selectLibrary(1);
+    drv.setMode(DRV2605_MODE_INTTRIG);
+    drv.useLRA();
+  }
+}
+
+void initialize_accelerometer(){
+  // Initialize accelerometer
+  if (accelSensorPort) {
+    // Set the cursor to the following coordinates before it prints "BMA250 Test"
+    Wireling.selectPort(accelSensorPort);
+    accel_sensor.begin(BMA250_range_4g, BMA250_update_time_16ms); // Sets up the BMA250 accel_sensorerometer
+  }
+}
+
+void initialize_pulse_sensor(){
+  // Initialize pulseoximeter
+  if (pulseSensorPort)
+  {
+    Wireling.selectPort(pulseSensorPort);
+    pulseSensor.begin(); //Configure sensor with default settings
+  }
+
+}
+
+void initialize_rtc(){
+  //initialize RTC
+  rtc.begin();
+  rtc.setTime(hours, minutes, seconds);//h,m,s
+  rtc.setDate(day, month, year);//d,m,y
+  //unsure how getEpoch is being displayed on excel file, but it is important in settting the date and time
+  unsigned long tempEpoch = rtc.getEpoch();
+  int tempHour = rtc.getHours();
+  int tempMinute = rtc.getMinutes();
+  
+  rtc.setEpoch(tempEpoch); // reset back to current time
+
+}
+
+void initialize_display(){
+  // Setup used to initialize the TinyScreen's appearance GUI.
+  display.begin();
+  display.setBrightness(15);
+  display.setFlip(true);
+  display.setFont(thinPixel7_10ptFontInfo);
+  display.fontColor(TS_8b_White, background);
+}
+
+void initialize_wireling(){
+  // Initialized wire and wireling classes for the sensors
+  delay(5000); // replaces the above
+  Wire.begin();
+  Wireling.begin();
+}
