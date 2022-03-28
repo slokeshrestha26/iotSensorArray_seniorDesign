@@ -1,1 +1,3 @@
 .DS_Store
+*.prj
+waistband/codegen
