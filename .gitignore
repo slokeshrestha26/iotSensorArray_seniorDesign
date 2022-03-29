@@ -2,3 +2,5 @@
 *.prj
 waistband/codegen
 .asv
+.asv
+*.prj
