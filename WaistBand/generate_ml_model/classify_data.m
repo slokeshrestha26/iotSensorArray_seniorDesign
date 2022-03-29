@@ -43,7 +43,7 @@ function features = get_features(dataAcc, dataHr) %#codegen
     
     %dist vecotr
     distAcc = sqrt(shpElem.^2 + sclElem.^2);
-    distHr = sqrt(shpElemHr.^2 + sclElem.^2);
+    distHr = sqrt(shpElemHr.^2 + sclElemHr.^2);
 
     % Formats feature vector for machine learning algorithms
     features = [avgAxis varAxis shpElem sclElem distAcc avgHr varHr shpElemHr sclElemHr distHr];
@@ -60,7 +60,7 @@ function prediction = get_prediction(features) %#codegen
     %   Stress       = 3
 
     % Loads models into the workspace
-    ML = loadLearnerForCoder('ML_SvNS.mat');
+    ML = loadLearnerForCoder('ml_mdl.mat');
 
     pred = char(predict(ML,features)); % Predicts Stress vs No Stress
 
