@@ -5,7 +5,7 @@
  * File: ifft.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 /* Include Files */
@@ -28,7 +28,7 @@ void ifft(const creal_T x[23400], creal_T y[23400])
   static creal_T fy[16384];
   static creal_T wwc[15599];
   static double costab[8193];
-  static double sintab[8193];
+  double sintab[8193];
   double sintabinv[8193];
   double d;
   double d1;

@@ -5,7 +5,7 @@
  * File: classify_data.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 #ifndef CLASSIFY_DATA_H
@@ -21,8 +21,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern int classify_data(const double dataAcc[23400],
-                         const double dataHr[3800]);
+extern int classify_data(const double dataAcc[23400], const double dataHr[300]);
 
 #ifdef __cplusplus
 }

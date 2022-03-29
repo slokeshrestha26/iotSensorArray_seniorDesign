@@ -12,7 +12,6 @@
 *.map
 *.rsp
 *.tmw
-*.mat
 sil/
 interface/_coder_*_info.*
 coderassumptions/

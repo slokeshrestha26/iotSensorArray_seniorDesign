@@ -5,7 +5,7 @@
  * File: classify_data_data.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 #ifndef CLASSIFY_DATA_DATA_H
@@ -17,8 +17,8 @@
 #include <stdlib.h>
 
 /* Variable Declarations */
-extern const double dv[4097];
-extern const double dv1[4097];
+extern const double dv[513];
+extern const double dv1[513];
 
 #endif
 /*

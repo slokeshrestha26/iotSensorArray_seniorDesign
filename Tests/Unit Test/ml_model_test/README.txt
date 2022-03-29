@@ -14,10 +14,13 @@ Test 2: Run Time Error
     Pass case:
         - The model either returns 0 or 1. 
         - There are no division by 0 errors.
+        - The data fits in memory.
 
 
 RESULTS:
 
 Test 1: Compilation Error: Pass
+    - No compilation error encountered
 Test 2: Runtime Error: 
+    - 
 

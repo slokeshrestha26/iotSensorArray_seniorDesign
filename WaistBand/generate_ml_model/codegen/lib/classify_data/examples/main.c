@@ -5,7 +5,7 @@
  * File: main.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 /*************************************************************************/
@@ -40,7 +40,7 @@
 #include "rt_nonfinite.h"
 
 /* Function Declarations */
-static void argInit_3800x1_real_T(double result[3800]);
+static void argInit_300x1_real_T(double result[300]);
 
 static void argInit_7800x3_real_T(double result[23400]);
 
@@ -50,14 +50,14 @@ static void main_classify_data(void);
 
 /* Function Definitions */
 /*
- * Arguments    : double result[3800]
+ * Arguments    : double result[300]
  * Return Type  : void
  */
-static void argInit_3800x1_real_T(double result[3800])
+static void argInit_300x1_real_T(double result[300])
 {
   int idx0;
   /* Loop over the array to initialize each element. */
-  for (idx0 = 0; idx0 < 3800; idx0++) {
+  for (idx0 = 0; idx0 < 300; idx0++) {
     /* Set the value of the array element.
 Change this value to the value that the application requires. */
     result[idx0] = argInit_real_T();
@@ -98,14 +98,14 @@ static double argInit_real_T(void)
 static void main_classify_data(void)
 {
   static double b_dv[23400];
-  static double b_dv1[3800];
+  double b_dv1[300];
   int pred;
   /* Initialize function 'classify_data' input arguments. */
   /* Initialize function input argument 'dataAcc'. */
   /* Initialize function input argument 'dataHr'. */
   /* Call the entry-point 'classify_data'. */
   argInit_7800x3_real_T(b_dv);
-  argInit_3800x1_real_T(b_dv1);
+  argInit_300x1_real_T(b_dv1);
   pred = classify_data(b_dv, b_dv1);
 }
 

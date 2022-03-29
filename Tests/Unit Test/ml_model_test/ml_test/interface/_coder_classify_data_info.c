@@ -5,7 +5,7 @@
  * File: _coder_classify_data_info.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 /* Include Files */
@@ -25,25 +25,26 @@ static const mxArray *emlrtMexFcnResolvedFunctionsInfo(void)
 {
   const mxArray *nameCaptureInfo;
   const char_T *data[6] = {
-      "789ced55cd6ed34010ded0227101c285730f1597082fa23d708544494d9510296ed2124a"
-      "58dbd3d4747fc2eea6383c0137b8c1a37083c7e071b0936c7e2c1947"
-      "4d3142612eb3e3cf3bdfccacf7332ad8f50242e80e9ad8e77b137f7b1a17a7fe065ab624"
-      "5e98faad446cec26da5eda67f04f53ef09ae21d493801306b39dbe60",
-      "01275c3ba30120094ad04bf0c7c85940c10918b41683461cb1ea02340b62285e97cfc1bb"
-      "680d1992e76a5e215d0c66f37893d2ef76c63c92969c47f2bd4de1fb"
-      "79453e937f98c167f0eed1293e52201556545c00ae086fc8806b853d4a9402855bc00321"
-      "772aa0823edfb16d1c081d3d53423e95928c7a6a8c4f60fc9e044abb",
-      "84fbb80f1c24d1d063b4c7840f14c70b9f5a8c68943dd7bb2bf699f4f3f76f8dfdc3ad67"
-      "2eca91cfd8a6f08529f956fd4eefa7f01513b86cb59bce4b5dabbddd"
-      "6f9707bebbf7e1b0ead5e675343378b2ea4029715ef9bfa5ec5f758e9d94fcc504deb58f"
-      "cba7bbd11da4c49542e85dac85a0ae08b1d2c4dc7a097d5c9aaf2810",
-      "c9031e3f8b2eb2c4a5c97d2e0b36209e6eb5eb169bff17d7ec0367f46170539d658ab3c6"
-      "b50d754095a52e9975089203ad0eb9a703c1ff9a8effb8229fc9ff3a"
-      "83cfe0d1b936d63cd7f1ec70291a1e5e1e5e74bcb9e9cbe0fb976eec37453ff3e6cb4baf"
-      "3be1d1e8e4e0dd1ef11b217b61cb636ed37ae5bf5e9b7ced94fcc504",
-      "7e1d7a3d15eaa6043ff0b4908bf7f9e39a7d3cc8e8c3e0bfd56b4712aece845c4167fe94"
-      "4eaf7b9e4e069fc1af4da767338b4f333f3df9da715ee5c9676c53f8"
-      "f2d2e7e7c47186c4ef48b7a107fb274fc2478f852cfffbfafc0b8b93329f",
+      "789ced55cd6ed34010de4091b800e1c2b987082145f222da0357e428c1ad9246c4495a42"
+      "096b7b9b9aee4fd85db70e4fc00d6ee551b8c163f034083bc9e6c792"
+      "71d4145728cc6576fc79e79b99f57e0605ab5e0000dc0713fbf270e2ef4de3e2d4df02cb"
+      "96c40b537f3b116bbb03b696f669fcf3d4bb9c291caa49c010c5b39d",
+      "1ea73e434cd9a32106024b4eceb137464e7c826d9fe2d662d088235a5d8066410cc56bf3"
+      "14bb67ad8002712ae71592c560368f7729fd6e65cc2369c97924dfdb"
+      "14be9f57e4d3f9830c3e8df7dac7b02db19050127e866185bb01c54c49e812242596b085"
+      "99cfc576054b7fc0b62d0bfa5c45cf24172f8440a3be1ce313185e20",
+      "5f2a07310f0e30c30229dca7a44fb987098c171e312852207bae0f56ec33e9e7efdf1dfb"
+      "27af4c07e4c877097f95f2e4d376537c614abe55bfd347297cc5042e"
+      "5a9da6fd5ad56aef773be6d073763eee57dddabc8e66064f561d2025ce2bffb794fdabce"
+      "b19b92bf98c07bd6a1795c8aee20418ee05c95a0e29c383c8452217d",
+      "eb051ec0f27c453012cc67f1b3e8220b589edc6793d3217255ab5337e8fcbfb8661f30a3"
+      "0f8debea0c5d9c31ae2d503e91863ca7c63e160c936ac05ce5737663"
+      "3afee38a7c3affdb0c3e8d47e7da58f35cc7b383e56878707978d1f1e6a62fc3ef97bdd8"
+      "6f8a7ee6cd97975e77c3f6e8e8e5871de435427a60894366917ae5bf",
+      "5eeb7c9d94fcc5047e1d7a3d15eaa6c09eef2a2e16eff3a735fb789cd187c6ffa8d7b640"
+      "4c9e70b182cefc2d9d5ef73ced0c3e8d5f9b4ecf66169f667e7af2b5"
+      "6bbfc9934fdba6f0e5a5cf7bc8b603e47585d350c3dda3e7e1d3675c98ffbe3eff065bbd"
+      "34d2",
       ""};
   nameCaptureInfo = NULL;
   emlrtNameCaptureMxArrayR2016a(&data[0], 4520U, &nameCaptureInfo);
@@ -82,7 +83,7 @@ mxArray *emlrtMexFcnProperties(void)
                           "II/iotSensorArray_seniorDesign/waistband/"
                           "generate_ml_model/classify_data.m"));
   emlrtSetField(xEntryPoints, 0, (const char_T *)"TimeStamp",
-                emlrtMxCreateDoubleScalar(738609.56135416671));
+                emlrtMxCreateDoubleScalar(738609.56842592591));
   xResult =
       emlrtCreateStructMatrix(1, 1, 5, (const char_T **)&propFieldName[0]);
   emlrtSetField(

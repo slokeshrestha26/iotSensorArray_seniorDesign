@@ -5,7 +5,7 @@
  * File: _coder_classify_data_api.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 #ifndef _CODER_CLASSIFY_DATA_API_H
@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-int32_T classify_data(real_T dataAcc[23400], real_T dataHr[3800]);
+int32_T classify_data(real_T dataAcc[23400], real_T dataHr[300]);
 
 void classify_data_api(const mxArray *const prhs[2], const mxArray **plhs);
 

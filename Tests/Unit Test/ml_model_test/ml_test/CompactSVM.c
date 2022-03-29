@@ -5,7 +5,7 @@
  * File: CompactSVM.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 /* Include Files */
@@ -121,8 +121,8 @@ double CompactSVM_score(const double obj_Alpha[6497],
                         const double Xin[20])
 {
   static double svT[129940];
-  static double svInnerProduct[6497];
   double b_dv1[6497];
+  double svInnerProduct[6497];
   double b_dv[20];
   double c;
   double c_tmp;

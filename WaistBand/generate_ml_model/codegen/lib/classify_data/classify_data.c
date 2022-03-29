@@ -5,7 +5,7 @@
  * File: classify_data.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 /* Include Files */
@@ -116,40 +116,39 @@ static double rt_hypotd_snf(double u0, double u1)
  *  predictions from 3 machine learning models.
  *
  * Arguments    : const double dataAcc[23400]
- *                const double dataHr[3800]
+ *                const double dataHr[300]
  * Return Type  : int
  */
-int classify_data(const double dataAcc[23400], const double dataHr[3800])
+int classify_data(const double dataAcc[23400], const double dataHr[300])
 {
   static creal_T b_x[23400];
   static creal_T x[23400];
   static creal_T wwc[7799];
-  static creal_T c_x[3800];
   static double amp[23400];
   static double d_x[23400];
   static double costab[8193];
   static double sintab[8193];
   static double sintabinv[8193];
   static double xv[7800];
-  static double ampHr[3800];
-  double e_x[3800];
-  double b_y[20];
+  creal_T c_x[300];
+  double ampHr[300];
+  double e_x[300];
+  double c_y[20];
+  double b_y[3];
   double den[3];
   double sumX[3];
   double varAxis[3];
-  double y[3];
-  double avgHr_tmp;
-  double bsum;
   double d;
   double nt_im;
   double nt_re;
   double varHr;
   double xbar;
-  int b_ib;
+  double y;
   int hi;
-  int ib;
   int k;
+  int p;
   int rt;
+  int xblockoffset;
   /* CLASSIFY_DATA Classify stress, no stress from accelerometer and heart rate
    */
   /*  data. */
@@ -172,11 +171,11 @@ int classify_data(const double dataAcc[23400], const double dataHr[3800])
   wwc[3899].re = 1.0;
   wwc[3899].im = 0.0;
   for (k = 0; k < 3899; k++) {
-    hi = ((k + 1) << 1) - 1;
-    if (7800 - rt <= hi) {
-      rt = (hi + rt) - 7800;
+    xblockoffset = ((k + 1) << 1) - 1;
+    if (7800 - rt <= xblockoffset) {
+      rt = (xblockoffset + rt) - 7800;
     } else {
-      rt += hi;
+      rt += xblockoffset;
     }
     nt_im = -3.1415926535897931 * (double)rt / 3900.0;
     if (nt_im == 0.0) {
@@ -200,12 +199,12 @@ int classify_data(const double dataAcc[23400], const double dataHr[3800])
                                   *(creal_T(*)[7800]) & x[15600], wwc, costab,
                                   sintab, costab, sintabinv);
   for (rt = 0; rt < 3; rt++) {
-    for (hi = 0; hi < 3899; hi++) {
-      ib = hi + 7800 * rt;
-      x[ib + 1].re *= 2.0;
-      x[ib + 1].im *= 2.0;
-      x[ib + 3901].re = 0.0;
-      x[ib + 3901].im = 0.0;
+    for (xblockoffset = 0; xblockoffset < 3899; xblockoffset++) {
+      hi = xblockoffset + 7800 * rt;
+      x[hi + 1].re *= 2.0;
+      x[hi + 1].im *= 2.0;
+      x[hi + 3901].re = 0.0;
+      x[hi + 3901].im = 0.0;
     }
   }
   memcpy(&b_x[0], &x[0], 23400U * sizeof(creal_T));
@@ -214,45 +213,34 @@ int classify_data(const double dataAcc[23400], const double dataHr[3800])
     amp[k] = rt_hypotd_snf(x[k].re, x[k].im);
   }
   hilbert(dataHr, c_x);
-  for (k = 0; k < 3800; k++) {
+  for (k = 0; k < 300; k++) {
     ampHr[k] = rt_hypotd_snf(c_x[k].re, c_x[k].im);
   }
   /*  Calculates mean of the data */
-  avgHr_tmp = dataHr[0];
-  for (k = 0; k < 1023; k++) {
-    avgHr_tmp += dataHr[k + 1];
+  y = dataHr[0];
+  for (k = 0; k < 299; k++) {
+    y += dataHr[k + 1];
   }
   /*  Calculates variance of the data */
-  for (b_ib = 0; b_ib < 3; b_ib++) {
-    rt = (b_ib + 1) << 10;
-    bsum = dataHr[rt];
-    if (b_ib + 2 == 4) {
-      hi = 728;
-    } else {
-      hi = 1024;
-    }
-    for (k = 2; k <= hi; k++) {
-      bsum += dataHr[(rt + k) - 1];
-    }
-    avgHr_tmp += bsum;
-    rt = b_ib * 7800;
+  for (p = 0; p < 3; p++) {
+    rt = p * 7800;
     memcpy(&xv[0], &dataAcc[rt], 7800U * sizeof(double));
     xbar = xv[0];
     for (k = 0; k < 1023; k++) {
       xbar += xv[k + 1];
     }
-    for (ib = 0; ib < 7; ib++) {
-      rt = (ib + 1) << 10;
-      bsum = xv[rt];
-      if (ib + 2 == 8) {
+    for (rt = 0; rt < 7; rt++) {
+      xblockoffset = (rt + 1) << 10;
+      nt_re = xv[xblockoffset];
+      if (rt + 2 == 8) {
         hi = 632;
       } else {
         hi = 1024;
       }
       for (k = 2; k <= hi; k++) {
-        bsum += xv[(rt + k) - 1];
+        nt_re += xv[(xblockoffset + k) - 1];
       }
-      xbar += bsum;
+      xbar += nt_re;
     }
     xbar /= 7800.0;
     nt_re = 0.0;
@@ -260,22 +248,26 @@ int classify_data(const double dataAcc[23400], const double dataHr[3800])
       nt_im = xv[k] - xbar;
       nt_re += nt_im * nt_im;
     }
-    varAxis[b_ib] = nt_re / 7799.0;
+    varAxis[p] = nt_re / 7799.0;
   }
-  xbar = avgHr_tmp / 3800.0;
+  xbar = dataHr[0];
+  for (k = 0; k < 299; k++) {
+    xbar += dataHr[k + 1];
+  }
+  xbar /= 300.0;
   varHr = 0.0;
-  for (k = 0; k < 3800; k++) {
+  for (k = 0; k < 300; k++) {
     nt_im = dataHr[k] - xbar;
     varHr += nt_im * nt_im;
   }
-  varHr /= 3799.0;
+  varHr /= 299.0;
   /*  Estimates Gamma shape and scale parameters */
   /*  Estimates the gamma shape and scale parameters of a dataset. */
   /*  PAL gamfit Estimation Function */
   /*  Makes any zeros nonzero to prevent invalid logarithmic operations */
-  for (hi = 0; hi < 23400; hi++) {
-    if (amp[hi] == 0.0) {
-      amp[hi] = 1.0E-5;
+  for (xblockoffset = 0; xblockoffset < 23400; xblockoffset++) {
+    if (amp[xblockoffset] == 0.0) {
+      amp[xblockoffset] = 1.0E-5;
     }
   }
   /*  Calculates variables for closed form gamma parameter estimation */
@@ -287,114 +279,76 @@ int classify_data(const double dataAcc[23400], const double dataHr[3800])
     amp[k] = nt_re;
   }
   combineVectorElements(d_x, den);
-  combineVectorElements(amp, y);
+  combineVectorElements(amp, b_y);
   /*  Estimates closed form shape and scale values */
-  d = 7800.0 * den[0] - y[0] * sumX[0];
+  d = 7800.0 * den[0] - b_y[0] * sumX[0];
   sumX[0] = 7800.0 * sumX[0] / d;
   d *= 1.6436554898093361E-8;
   den[0] = d;
-  d = 7800.0 * den[1] - y[1] * sumX[1];
+  d = 7800.0 * den[1] - b_y[1] * sumX[1];
   sumX[1] = 7800.0 * sumX[1] / d;
   d *= 1.6436554898093361E-8;
   den[1] = d;
-  d = 7800.0 * den[2] - y[2] * sumX[2];
+  d = 7800.0 * den[2] - b_y[2] * sumX[2];
   sumX[2] = 7800.0 * sumX[2] / d;
   d *= 1.6436554898093361E-8;
   /*  Estimates the gamma shape and scale parameters of a dataset. */
   /*  PAL gamfit Estimation Function */
   /*  Makes any zeros nonzero to prevent invalid logarithmic operations */
-  for (hi = 0; hi < 3800; hi++) {
-    if (ampHr[hi] == 0.0) {
-      ampHr[hi] = 1.0E-5;
+  for (xblockoffset = 0; xblockoffset < 300; xblockoffset++) {
+    if (ampHr[xblockoffset] == 0.0) {
+      ampHr[xblockoffset] = 1.0E-5;
     }
   }
   /*  Calculates variables for closed form gamma parameter estimation */
   xbar = ampHr[0];
-  for (k = 0; k < 1023; k++) {
+  for (k = 0; k < 299; k++) {
     xbar += ampHr[k + 1];
   }
-  for (b_ib = 0; b_ib < 3; b_ib++) {
-    rt = (b_ib + 1) << 10;
-    bsum = ampHr[rt];
-    if (b_ib + 2 == 4) {
-      hi = 728;
-    } else {
-      hi = 1024;
-    }
-    for (k = 2; k <= hi; k++) {
-      bsum += ampHr[(rt + k) - 1];
-    }
-    xbar += bsum;
-  }
-  for (k = 0; k < 3800; k++) {
-    nt_im = ampHr[k];
-    nt_re = log(nt_im);
-    e_x[k] = nt_im * nt_re;
-    ampHr[k] = nt_re;
+  for (k = 0; k < 300; k++) {
+    nt_re = ampHr[k];
+    e_x[k] = nt_re * log(nt_re);
   }
   nt_re = e_x[0];
-  for (k = 0; k < 1023; k++) {
+  for (k = 0; k < 299; k++) {
     nt_re += e_x[k + 1];
   }
-  for (b_ib = 0; b_ib < 3; b_ib++) {
-    rt = (b_ib + 1) << 10;
-    bsum = e_x[rt];
-    if (b_ib + 2 == 4) {
-      hi = 728;
-    } else {
-      hi = 1024;
-    }
-    for (k = 2; k <= hi; k++) {
-      bsum += e_x[(rt + k) - 1];
-    }
-    nt_re += bsum;
+  for (k = 0; k < 300; k++) {
+    ampHr[k] = log(ampHr[k]);
   }
   nt_im = ampHr[0];
-  for (k = 0; k < 1023; k++) {
+  for (k = 0; k < 299; k++) {
     nt_im += ampHr[k + 1];
   }
-  for (b_ib = 0; b_ib < 3; b_ib++) {
-    rt = (b_ib + 1) << 10;
-    bsum = ampHr[rt];
-    if (b_ib + 2 == 4) {
-      hi = 728;
-    } else {
-      hi = 1024;
-    }
-    for (k = 2; k <= hi; k++) {
-      bsum += ampHr[(rt + k) - 1];
-    }
-    nt_im += bsum;
-  }
-  nt_re = 3800.0 * nt_re - nt_im * xbar;
+  nt_re = 300.0 * nt_re - nt_im * xbar;
   /*  Estimates closed form shape and scale values */
-  nt_im = 3800.0 * xbar / nt_re;
-  nt_re *= 6.9252077562326875E-8;
+  nt_im = 300.0 * xbar / nt_re;
+  nt_re *= 1.1111111111111112E-5;
   /* dist vecotr */
   /*  Formats feature vector for machine learning algorithms */
   /*  Makes predictions using mapped data features */
-  combineVectorElements(dataAcc, y);
-  b_y[0] = y[0] / 7800.0;
-  b_y[3] = varAxis[0];
-  b_y[6] = sumX[0];
-  b_y[9] = den[0];
-  b_y[12] = sqrt(sumX[0] * sumX[0] + den[0] * den[0]);
-  b_y[1] = y[1] / 7800.0;
-  b_y[4] = varAxis[1];
-  b_y[7] = sumX[1];
-  b_y[10] = den[1];
-  b_y[13] = sqrt(sumX[1] * sumX[1] + den[1] * den[1]);
-  b_y[2] = y[2] / 7800.0;
-  b_y[5] = varAxis[2];
-  b_y[8] = sumX[2];
-  b_y[11] = d;
-  b_y[14] = sqrt(sumX[2] * sumX[2] + d * d);
-  b_y[15] = avgHr_tmp / 3800.0;
-  b_y[16] = varHr;
-  b_y[17] = nt_im;
-  b_y[18] = nt_re;
-  b_y[19] = sqrt(nt_im * nt_im + nt_re * nt_re);
-  return get_prediction(b_y);
+  combineVectorElements(dataAcc, b_y);
+  c_y[0] = b_y[0] / 7800.0;
+  c_y[3] = varAxis[0];
+  c_y[6] = sumX[0];
+  c_y[9] = den[0];
+  c_y[12] = sqrt(sumX[0] * sumX[0] + den[0] * den[0]);
+  c_y[1] = b_y[1] / 7800.0;
+  c_y[4] = varAxis[1];
+  c_y[7] = sumX[1];
+  c_y[10] = den[1];
+  c_y[13] = sqrt(sumX[1] * sumX[1] + den[1] * den[1]);
+  c_y[2] = b_y[2] / 7800.0;
+  c_y[5] = varAxis[2];
+  c_y[8] = sumX[2];
+  c_y[11] = d;
+  c_y[14] = sqrt(sumX[2] * sumX[2] + d * d);
+  c_y[15] = y / 300.0;
+  c_y[16] = varHr;
+  c_y[17] = nt_im;
+  c_y[18] = nt_re;
+  c_y[19] = sqrt(nt_im * nt_im + nt_re * nt_re);
+  return get_prediction(c_y);
 }
 
 /*

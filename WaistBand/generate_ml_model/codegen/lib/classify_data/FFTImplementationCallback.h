@@ -5,7 +5,7 @@
  * File: FFTImplementationCallback.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 29-Mar-2022 13:32:22
+ * C/C++ source code generated on  : 29-Mar-2022 14:42:52
  */
 
 #ifndef FFTIMPLEMENTATIONCALLBACK_H
@@ -31,10 +31,10 @@ void c_FFTImplementationCallback_doH(const double x[23400], int xoffInit,
 void c_FFTImplementationCallback_gen(double costab[8193], double sintab[8193],
                                      double sintabinv[8193]);
 
-void d_FFTImplementationCallback_doH(const double x[3800], creal_T y[3800],
-                                     const creal_T wwc[3799],
-                                     const double costabinv[4097],
-                                     const double sintabinv[4097]);
+void d_FFTImplementationCallback_doH(const double x[300], creal_T y[300],
+                                     const creal_T wwc[299],
+                                     const double costabinv[513],
+                                     const double sintabinv[513]);
 
 #ifdef __cplusplus
 }
