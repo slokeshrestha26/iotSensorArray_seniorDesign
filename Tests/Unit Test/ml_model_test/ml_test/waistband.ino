@@ -10,9 +10,6 @@ void initializeBluetooth();
 void sendAlert();
 void getData();
 
-int data_size = DATA_LENGTH_ACC*3 + DATA_LENGTH_HR;
-double data[data_size];
-
 void setup()
 {
  initializeBluetooth(); 
