@@ -5,7 +5,7 @@
  * File: _coder_classify_data_api.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 20-Mar-2022 19:57:03
+ * C/C++ source code generated on  : 29-Mar-2022 13:32:22
  */
 
 /* Include Files */
@@ -32,10 +32,10 @@ static real_T (*b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
                                    const emlrtMsgIdentifier *parentId))[23400];
 
 static real_T (*c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *dataHr,
-                                   const char_T *identifier))[300];
+                                   const char_T *identifier))[3800];
 
 static real_T (*d_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
-                                   const emlrtMsgIdentifier *parentId))[300];
+                                   const emlrtMsgIdentifier *parentId))[3800];
 
 static real_T (*e_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
                                    const emlrtMsgIdentifier *msgId))[23400];
@@ -46,7 +46,7 @@ static real_T (*emlrt_marshallIn(const emlrtStack *sp, const mxArray *dataAcc,
 static const mxArray *emlrt_marshallOut(const int32_T u);
 
 static real_T (*f_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
-                                   const emlrtMsgIdentifier *msgId))[300];
+                                   const emlrtMsgIdentifier *msgId))[3800];
 
 /* Function Definitions */
 /*
@@ -68,13 +68,13 @@ static real_T (*b_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
  * Arguments    : const emlrtStack *sp
  *                const mxArray *dataHr
  *                const char_T *identifier
- * Return Type  : real_T (*)[300]
+ * Return Type  : real_T (*)[3800]
  */
 static real_T (*c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *dataHr,
-                                   const char_T *identifier))[300]
+                                   const char_T *identifier))[3800]
 {
   emlrtMsgIdentifier thisId;
-  real_T(*y)[300];
+  real_T(*y)[3800];
   thisId.fIdentifier = (const char_T *)identifier;
   thisId.fParent = NULL;
   thisId.bParentIsCell = false;
@@ -87,12 +87,12 @@ static real_T (*c_emlrt_marshallIn(const emlrtStack *sp, const mxArray *dataHr,
  * Arguments    : const emlrtStack *sp
  *                const mxArray *u
  *                const emlrtMsgIdentifier *parentId
- * Return Type  : real_T (*)[300]
+ * Return Type  : real_T (*)[3800]
  */
 static real_T (*d_emlrt_marshallIn(const emlrtStack *sp, const mxArray *u,
-                                   const emlrtMsgIdentifier *parentId))[300]
+                                   const emlrtMsgIdentifier *parentId))[3800]
 {
-  real_T(*y)[300];
+  real_T(*y)[3800];
   y = f_emlrt_marshallIn(sp, emlrtAlias(u), parentId);
   emlrtDestroyArray(&u);
   return y;
@@ -154,16 +154,16 @@ static const mxArray *emlrt_marshallOut(const int32_T u)
  * Arguments    : const emlrtStack *sp
  *                const mxArray *src
  *                const emlrtMsgIdentifier *msgId
- * Return Type  : real_T (*)[300]
+ * Return Type  : real_T (*)[3800]
  */
 static real_T (*f_emlrt_marshallIn(const emlrtStack *sp, const mxArray *src,
-                                   const emlrtMsgIdentifier *msgId))[300]
+                                   const emlrtMsgIdentifier *msgId))[3800]
 {
-  static const int32_T dims = 300;
-  real_T(*ret)[300];
+  static const int32_T dims = 3800;
+  real_T(*ret)[3800];
   emlrtCheckBuiltInR2012b((emlrtCTX)sp, msgId, src, (const char_T *)"double",
                           false, 1U, (void *)&dims);
-  ret = (real_T(*)[300])emlrtMxGetData(src);
+  ret = (real_T(*)[3800])emlrtMxGetData(src);
   emlrtDestroyArray(&src);
   return ret;
 }
@@ -181,7 +181,7 @@ void classify_data_api(const mxArray *const prhs[2], const mxArray **plhs)
       NULL  /* prev */
   };
   real_T(*dataAcc)[23400];
-  real_T(*dataHr)[300];
+  real_T(*dataHr)[3800];
   int32_T pred;
   st.tls = emlrtRootTLSGlobal;
   /* Marshall function inputs */

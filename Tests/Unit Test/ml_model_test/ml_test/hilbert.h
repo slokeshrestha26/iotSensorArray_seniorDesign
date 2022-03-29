@@ -5,7 +5,7 @@
  * File: hilbert.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 20-Mar-2022 19:57:03
+ * C/C++ source code generated on  : 29-Mar-2022 13:32:22
  */
 
 #ifndef HILBERT_H
@@ -13,7 +13,6 @@
 
 /* Include Files */
 #include "rtwtypes.h"
-#include "omp.h"
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -22,7 +21,7 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-void hilbert(const double xr[300], creal_T x[300]);
+void hilbert(const double xr[3800], creal_T x[3800]);
 
 #ifdef __cplusplus
 }

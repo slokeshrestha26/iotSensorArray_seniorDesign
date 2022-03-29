@@ -5,7 +5,7 @@
  * File: classify_data.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 20-Mar-2022 19:57:03
+ * C/C++ source code generated on  : 29-Mar-2022 13:32:22
  */
 
 #ifndef CLASSIFY_DATA_H
@@ -13,7 +13,6 @@
 
 /* Include Files */
 #include "rtwtypes.h"
-#include "omp.h"
 #include <stddef.h>
 #include <stdlib.h>
 
@@ -22,7 +21,8 @@ extern "C" {
 #endif
 
 /* Function Declarations */
-extern int classify_data(const double dataAcc[23400], const double dataHr[300]);
+extern int classify_data(const double dataAcc[23400],
+                         const double dataHr[3800]);
 
 #ifdef __cplusplus
 }

@@ -2,8 +2,8 @@
 ## Makefile generated for component 'classify_data'. 
 ## 
 ## Makefile     : classify_data_rtw.mk
-## Generated on : Sun Mar 20 19:57:35 2022
-## Final product: ./classify_data.a
+## Generated on : Tue Mar 29 13:32:49 2022
+## Final product: ./classify_data.lib
 ## Product type : static-library
 ## 
 ###########################################################################
@@ -15,6 +15,8 @@
 # Macro Descriptions:
 # PRODUCT_NAME            Name of the system to build
 # MAKEFILE                Name of this makefile
+# COMPILER_COMMAND_FILE   Compiler command listing model reference header paths
+# CMD_FILE                Command file
 # MODELLIB                Static library target
 
 PRODUCT_NAME              = classify_data
@@ -22,22 +24,24 @@ MAKEFILE                  = classify_data_rtw.mk
 MATLAB_ROOT               = /Applications/MATLAB_R2021a.app
 MATLAB_BIN                = /Applications/MATLAB_R2021a.app/bin
 MATLAB_ARCH_BIN           = $(MATLAB_BIN)/maci64
-START_DIR                 = /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/codegen/lib/classify_data
+START_DIR                 = /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/codegen/lib/classify_data
 TGT_FCN_LIB               = ISO_C
 SOLVER_OBJ                = 
 CLASSIC_INTERFACE         = 0
 MODEL_HAS_DYNAMICALLY_LOADED_SFCNS = 
 RELATIVE_PATH_TO_ANCHOR   = .
-C_STANDARD_OPTS           = -fno-common -fexceptions
-CPP_STANDARD_OPTS         = -std=c++14 -fno-common -fexceptions
-MODELLIB                  = classify_data.a
+COMPILER_COMMAND_FILE     = classify_data_rtw_comp.rsp
+CMD_FILE                  = classify_data_rtw.rsp
+C_STANDARD_OPTS           = 
+CPP_STANDARD_OPTS         = 
+MODELLIB                  = classify_data.lib
 
 ###########################################################################
 ## TOOLCHAIN SPECIFICATIONS
 ###########################################################################
 
-# Toolchain Name:          Clang v3.1 | gmake (64-bit Mac)
-# Supported Version(s):    3.1
+# Toolchain Name:          GNU Tools for ARM Embedded Processors
+# Supported Version(s):    
 # ToolchainInfo Version:   2021a
 # Specification Revision:  1.0
 # 
@@ -45,45 +49,69 @@ MODELLIB                  = classify_data.a
 # Macros assumed to be defined elsewhere
 #-------------------------------------------
 
-# C_STANDARD_OPTS
-# CPP_STANDARD_OPTS
+# TARGET_LOAD_CMD_ARGS
+# TARGET_LOAD_CMD
+# MW_GNU_ARM_TOOLS_PATH
+# FDATASECTIONS_FLG
 
 #-----------
 # MACROS
 #-----------
 
-ARCHS             = x86_64
-XCODE_SDK_VER     = $(shell perl $(MATLAB_ROOT)/rtw/c/tools/macsdkver.pl)
-XCODE_SDK         = MacOSX$(XCODE_SDK_VER).sdk
-XCODE_DEVEL_DIR   = $(shell xcode-select -print-path)
-XCODE_SDK_ROOT    = $(XCODE_DEVEL_DIR)/Platforms/MacOSX.platform/Developer/SDKs/$(XCODE_SDK)
+LIBGCC                = ${shell $(MW_GNU_ARM_TOOLS_PATH)/arm-none-eabi-gcc ${CFLAGS} -print-libgcc-file-name}
+LIBC                  = ${shell $(MW_GNU_ARM_TOOLS_PATH)/arm-none-eabi-gcc ${CFLAGS} -print-file-name=libc.a}
+LIBM                  = ${shell $(MW_GNU_ARM_TOOLS_PATH)/arm-none-eabi-gcc ${CFLAGS} -print-file-name=libm.a}
+PRODUCT_BIN           = $(RELATIVE_PATH_TO_ANCHOR)/$(PRODUCT_NAME).bin
+PRODUCT_HEX           = $(RELATIVE_PATH_TO_ANCHOR)/$(PRODUCT_NAME).hex
+CPFLAGS               = -O binary
 
 TOOLCHAIN_SRCS = 
 TOOLCHAIN_INCS = 
-TOOLCHAIN_LIBS = 
+TOOLCHAIN_LIBS = -lm
 
 #------------------------
 # BUILD TOOL COMMANDS
 #------------------------
 
-# C Compiler: Clang C Compiler
-CC = xcrun clang
+# Assembler: GNU ARM Assembler
+AS_PATH = $(MW_GNU_ARM_TOOLS_PATH)
+AS = "$(AS_PATH)/arm-none-eabi-gcc"
 
-# Linker: Clang Linker
-LD = xcrun clang++
+# C Compiler: GNU ARM C Compiler
+CC_PATH = $(MW_GNU_ARM_TOOLS_PATH)
+CC = "$(CC_PATH)/arm-none-eabi-gcc"
 
-# C++ Compiler: Clang C++ Compiler
-CPP = xcrun clang++
+# Linker: GNU ARM Linker
+LD_PATH = $(MW_GNU_ARM_TOOLS_PATH)
+LD = "$(LD_PATH)/arm-none-eabi-g++"
 
-# C++ Linker: Clang C++ Linker
-CPP_LD = xcrun clang++
+# C++ Compiler: GNU ARM C++ Compiler
+CPP_PATH = $(MW_GNU_ARM_TOOLS_PATH)
+CPP = "$(CPP_PATH)/arm-none-eabi-g++"
 
-# Archiver: Clang Archiver
-AR = xcrun ar
+# C++ Linker: GNU ARM C++ Linker
+CPP_LD_PATH = $(MW_GNU_ARM_TOOLS_PATH)
+CPP_LD = "$(CPP_LD_PATH)/arm-none-eabi-g++"
+
+# Archiver: GNU ARM Archiver
+AR_PATH = $(MW_GNU_ARM_TOOLS_PATH)
+AR = "$(AR_PATH)/arm-none-eabi-ar"
 
 # MEX Tool: MEX Tool
 MEX_PATH = $(MATLAB_ARCH_BIN)
 MEX = "$(MEX_PATH)/mex"
+
+# Binary Converter: Binary Converter
+OBJCOPYPATH = $(MW_GNU_ARM_TOOLS_PATH)
+OBJCOPY = "$(OBJCOPYPATH)/arm-none-eabi-objcopy"
+
+# Hex Converter: Hex Converter
+OBJCOPYPATH = $(MW_GNU_ARM_TOOLS_PATH)
+OBJCOPY = "$(OBJCOPYPATH)/arm-none-eabi-objcopy"
+
+# Executable Size: Executable Size
+EXESIZEPATH = $(MW_GNU_ARM_TOOLS_PATH)
+EXESIZE = "$(EXESIZEPATH)/arm-none-eabi-size"
 
 # Download: Download
 DOWNLOAD =
@@ -100,6 +128,8 @@ MAKE = "$(MAKE_PATH)/gmake"
 # Directives/Utilities
 #-------------------------
 
+ASDEBUG             = -g
+AS_OUTPUT_FLAG      = -o
 CDEBUG              = -g
 C_OUTPUT_FLAG       = -o
 LDDEBUG             = -g
@@ -111,7 +141,7 @@ OUTPUT_FLAG         = -o
 ARDEBUG             =
 STATICLIB_OUTPUT_FLAG =
 MEX_DEBUG           = -g
-RM                  = @rm -f
+RM                  = @del /f/q
 ECHO                = @echo
 MV                  = @mv
 RUN                 =
@@ -121,23 +151,42 @@ RUN                 =
 #--------------------------------------
 
 ARFLAGS              = ruvs
-CFLAGS               = -c -isysroot $(XCODE_SDK_ROOT) -arch $(ARCHS) $(C_STANDARD_OPTS) -mmacosx-version-min=10.14 \
+ASFLAGS              = -MMD -MP -MF"$(@:%.o=%.dep)" -MT"$@"  \
+                       -Wall \
+                       -x assembler-with-cpp \
+                       $(ASFLAGS_ADDITIONAL) \
+                       $(DEFINES) \
+                       $(INCLUDES) \
+                       -c
+OBJCOPYFLAGS_BIN     = -O binary $(PRODUCT) $(PRODUCT_BIN)
+CFLAGS               = $(FDATASECTIONS_FLG) \
+                       -Wall \
+                       -MMD -MP -MF"$(@:%.o=%.dep)" -MT"$@"  \
+                       -c \
                        -O3
-CPPFLAGS             = -c -isysroot $(XCODE_SDK_ROOT) -arch $(ARCHS) $(CPP_STANDARD_OPTS) -mmacosx-version-min=10.14 \
+CPPFLAGS             = -std=gnu++14 \
+                       -fno-rtti \
+                       -fno-exceptions \
+                       $(FDATASECTIONS_FLG) \
+                       -Wall \
+                       -MMD -MP -MF"$(@:%.o=%.dep)" -MT"$@"  \
+                       -c \
                        -O3
-CPP_LDFLAGS          = -arch $(ARCHS) -isysroot $(XCODE_SDK_ROOT) -Wl,-rpath,$(MATLAB_ARCH_BIN) -Wl,-rpath,@executable_path -Wl,-rpath,@executable_path/$(RELATIVE_PATH_TO_ANCHOR)
-CPP_SHAREDLIB_LDFLAGS  = -dynamiclib -install_name @rpath/$(notdir $(PRODUCT)) -isysroot $(XCODE_SDK_ROOT) \
-                         -Wl,$(LD_NAMESPACE) $(LD_UNDEFS)
+CPP_LDFLAGS          = -Wl,--gc-sections \
+                       -Wl,-Map="$(PRODUCT_NAME).map"
+CPP_SHAREDLIB_LDFLAGS  =
 DOWNLOAD_FLAGS       =
+EXESIZE_FLAGS        = $(PRODUCT)
 EXECUTE_FLAGS        =
-LDFLAGS              = -arch $(ARCHS) -isysroot $(XCODE_SDK_ROOT) -Wl,-rpath,$(MATLAB_ARCH_BIN) -Wl,-rpath,@executable_path -Wl,-rpath,@executable_path/$(RELATIVE_PATH_TO_ANCHOR)
+OBJCOPYFLAGS_HEX     = -O ihex $(PRODUCT) $(PRODUCT_HEX)
+LDFLAGS              = -Wl,--gc-sections \
+                       -Wl,-Map="$(PRODUCT_NAME).map"
 MEX_CPPFLAGS         =
 MEX_CPPLDFLAGS       =
 MEX_CFLAGS           =
 MEX_LDFLAGS          =
 MAKE_FLAGS           = -f $(MAKEFILE)
-SHAREDLIB_LDFLAGS    = -dynamiclib -install_name @rpath/$(notdir $(PRODUCT)) -isysroot $(XCODE_SDK_ROOT) \
-                       -Wl,$(LD_NAMESPACE) $(LD_UNDEFS)
+SHAREDLIB_LDFLAGS    =
 
 
 
@@ -145,7 +194,7 @@ SHAREDLIB_LDFLAGS    = -dynamiclib -install_name @rpath/$(notdir $(PRODUCT)) -is
 ## OUTPUT INFO
 ###########################################################################
 
-PRODUCT = ./classify_data.a
+PRODUCT = ./classify_data.lib
 PRODUCT_TYPE = "static-library"
 BUILD_TYPE = "Static Library"
 
@@ -153,7 +202,7 @@ BUILD_TYPE = "Static Library"
 ## INCLUDE PATHS
 ###########################################################################
 
-INCLUDES_BUILDINFO = -I$(START_DIR) -I/Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband -I$(MATLAB_ROOT)/extern/include
+INCLUDES_BUILDINFO = 
 
 INCLUDES = $(INCLUDES_BUILDINFO)
 
@@ -170,7 +219,7 @@ DEFINES = $(DEFINES_CUSTOM) $(DEFINES_STANDARD)
 ## SOURCE FILES
 ###########################################################################
 
-SRCS = $(START_DIR)/classify_data_data.c $(START_DIR)/rt_nonfinite.c $(START_DIR)/rtGetNaN.c $(START_DIR)/rtGetInf.c $(START_DIR)/classify_data_initialize.c $(START_DIR)/classify_data_terminate.c $(START_DIR)/classify_data.c $(START_DIR)/FFTImplementationCallback.c $(START_DIR)/hilbert.c $(START_DIR)/combineVectorElements.c $(START_DIR)/CompactClassificationSVM.c $(START_DIR)/CompactSVM.c $(START_DIR)/Gaussian.c $(START_DIR)/classify_data_rtwutil.c
+SRCS = $(START_DIR)/classify_data_data.c $(START_DIR)/rt_nonfinite.c $(START_DIR)/rtGetNaN.c $(START_DIR)/rtGetInf.c $(START_DIR)/classify_data_initialize.c $(START_DIR)/classify_data_terminate.c $(START_DIR)/classify_data.c $(START_DIR)/FFTImplementationCallback.c $(START_DIR)/ifft.c $(START_DIR)/hilbert.c $(START_DIR)/combineVectorElements.c $(START_DIR)/CompactClassificationSVM.c $(START_DIR)/CompactSVM.c $(START_DIR)/Gaussian.c
 
 ALL_SRCS = $(SRCS)
 
@@ -178,7 +227,7 @@ ALL_SRCS = $(SRCS)
 ## OBJECTS
 ###########################################################################
 
-OBJS = classify_data_data.o rt_nonfinite.o rtGetNaN.o rtGetInf.o classify_data_initialize.o classify_data_terminate.o classify_data.o FFTImplementationCallback.o hilbert.o combineVectorElements.o CompactClassificationSVM.o CompactSVM.o Gaussian.o classify_data_rtwutil.o
+OBJS = classify_data_data.o rt_nonfinite.o rtGetNaN.o rtGetInf.o classify_data_initialize.o classify_data_terminate.o classify_data.o FFTImplementationCallback.o ifft.o hilbert.o combineVectorElements.o CompactClassificationSVM.o CompactSVM.o Gaussian.o
 
 ALL_OBJS = $(OBJS)
 
@@ -198,7 +247,7 @@ LIBS =
 ## SYSTEM LIBRARIES
 ###########################################################################
 
-SYSTEM_LIBS =  -L"$(MATLAB_ROOT)/sys/os/maci64" -lm -liomp5
+SYSTEM_LIBS = 
 
 ###########################################################################
 ## ADDITIONAL TOOLCHAIN FLAGS
@@ -208,64 +257,62 @@ SYSTEM_LIBS =  -L"$(MATLAB_ROOT)/sys/os/maci64" -lm -liomp5
 # C Compiler
 #---------------
 
-CFLAGS_OPTS = -Xpreprocessor -fopenmp -I/Applications/MATLAB_R2021a.app/toolbox/eml/externalDependency/omp/maci64/include -DOpenMP_omp_LIBRARY=/Applications/MATLAB_R2021a.app/sys/os/maci64/libiomp5.dylib
-CFLAGS_BASIC = $(DEFINES) $(INCLUDES)
+CFLAGS_BASIC = $(DEFINES) $(INCLUDES) @$(COMPILER_COMMAND_FILE)
 
-CFLAGS += $(CFLAGS_OPTS) $(CFLAGS_BASIC)
+CFLAGS += $(CFLAGS_BASIC)
 
 #-----------------
 # C++ Compiler
 #-----------------
 
-CPPFLAGS_OPTS = -Xpreprocessor -fopenmp -I/Applications/MATLAB_R2021a.app/toolbox/eml/externalDependency/omp/maci64/include -DOpenMP_omp_LIBRARY=/Applications/MATLAB_R2021a.app/sys/os/maci64/libiomp5.dylib
-CPPFLAGS_BASIC = $(DEFINES) $(INCLUDES)
+CPPFLAGS_BASIC = $(DEFINES) $(INCLUDES) @$(COMPILER_COMMAND_FILE)
 
-CPPFLAGS += $(CPPFLAGS_OPTS) $(CPPFLAGS_BASIC)
+CPPFLAGS += $(CPPFLAGS_BASIC)
 
-#---------------
-# C++ Linker
-#---------------
+#---------------------
+# MEX C++ Compiler
+#---------------------
 
-CPP_LDFLAGS_ = -Wl,-rpath,$(MATLAB_ROOT)/sys/os/$(ARCH)/  
+MEX_CPP_Compiler_BASIC =  @$(COMPILER_COMMAND_FILE)
 
-CPP_LDFLAGS += $(CPP_LDFLAGS_)
+MEX_CPPFLAGS += $(MEX_CPP_Compiler_BASIC)
 
-#------------------------------
-# C++ Shared Library Linker
-#------------------------------
+#-----------------
+# MEX Compiler
+#-----------------
 
-CPP_SHAREDLIB_LDFLAGS_ = -Wl,-rpath,$(MATLAB_ROOT)/sys/os/$(ARCH)/  
+MEX_Compiler_BASIC =  @$(COMPILER_COMMAND_FILE)
 
-CPP_SHAREDLIB_LDFLAGS += $(CPP_SHAREDLIB_LDFLAGS_)
-
-#-----------
-# Linker
-#-----------
-
-LDFLAGS_ = -Wl,-rpath,$(MATLAB_ROOT)/sys/os/$(ARCH)/  
-
-LDFLAGS += $(LDFLAGS_)
-
-#--------------------------
-# Shared Library Linker
-#--------------------------
-
-SHAREDLIB_LDFLAGS_ = -Wl,-rpath,$(MATLAB_ROOT)/sys/os/$(ARCH)/  
-
-SHAREDLIB_LDFLAGS += $(SHAREDLIB_LDFLAGS_)
+MEX_CFLAGS += $(MEX_Compiler_BASIC)
 
 ###########################################################################
 ## INLINED COMMANDS
 ###########################################################################
 
+
+ALL_DEPS:=$(patsubst %.o,%.dep,$(ALL_OBJS))
+all:
+
+ifndef DISABLE_GCC_FUNCTION_DATA_SECTIONS
+FDATASECTIONS_FLG := -ffunction-sections -fdata-sections
+endif
+
+
+
+-include codertarget_assembly_flags.mk
+-include ../codertarget_assembly_flags.mk
+-include ../../codertarget_assembly_flags.mk
+-include $(ALL_DEPS)
+
+
 ###########################################################################
 ## PHONY TARGETS
 ###########################################################################
 
-.PHONY : all build clean info prebuild download execute
+.PHONY : all build clean info prebuild postbuild download execute
 
 
-all : build
+all : build postbuild
 	@echo "### Successfully generated all binary outputs."
 
 
@@ -275,7 +322,10 @@ build : prebuild $(PRODUCT)
 prebuild : 
 
 
-download : $(PRODUCT)
+postbuild : $(PRODUCT)
+
+
+download : postbuild
 
 
 execute : download
@@ -291,7 +341,7 @@ execute : download
 
 $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 	@echo "### Creating static library "$(PRODUCT)" ..."
-	$(AR) $(ARFLAGS)  $(PRODUCT) $(OBJS)
+	$(AR) $(ARFLAGS)  $(PRODUCT) @$(CMD_FILE)
 	@echo "### Created: $(PRODUCT)"
 
 
@@ -307,7 +357,27 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
+%.o : %.s
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
+%.o : %.S
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
 %.o : %.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : %.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : %.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : %.cxx
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
@@ -315,7 +385,27 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
+%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.s
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
+%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.S
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
 %.o : $(RELATIVE_PATH_TO_ANCHOR)/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : $(RELATIVE_PATH_TO_ANCHOR)/%.cxx
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
@@ -323,15 +413,55 @@ $(PRODUCT) : $(OBJS) $(PREBUILT_OBJS)
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
+%.o : $(START_DIR)/%.s
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
+%.o : $(START_DIR)/%.S
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
 %.o : $(START_DIR)/%.cpp
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
-%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/%.c
+%.o : $(START_DIR)/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : $(START_DIR)/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : $(START_DIR)/%.cxx
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/%.cpp
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.s
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.S
+	$(AS) $(ASFLAGS) -o "$@" "$<"
+
+
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.cpp
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.cc
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.C
+	$(CPP) $(CPPFLAGS) -o "$@" "$<"
+
+
+%.o : /Users/sloke/Documents/classes/Senior\ Design\ II/iotSensorArray_seniorDesign/waistband/generate_ml_model/%.cxx
 	$(CPP) $(CPPFLAGS) -o "$@" "$<"
 
 
@@ -367,6 +497,10 @@ FFTImplementationCallback.o : $(START_DIR)/FFTImplementationCallback.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
+ifft.o : $(START_DIR)/ifft.c
+	$(CC) $(CFLAGS) -o "$@" "$<"
+
+
 hilbert.o : $(START_DIR)/hilbert.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
@@ -387,15 +521,11 @@ Gaussian.o : $(START_DIR)/Gaussian.c
 	$(CC) $(CFLAGS) -o "$@" "$<"
 
 
-classify_data_rtwutil.o : $(START_DIR)/classify_data_rtwutil.c
-	$(CC) $(CFLAGS) -o "$@" "$<"
-
-
 ###########################################################################
 ## DEPENDENCIES
 ###########################################################################
 
-$(ALL_OBJS) : rtw_proj.tmw $(MAKEFILE)
+$(ALL_OBJS) : rtw_proj.tmw $(COMPILER_COMMAND_FILE) $(MAKEFILE)
 
 
 ###########################################################################
@@ -414,6 +544,7 @@ info :
 	@echo "### MODELREF_LIBS = $(MODELREF_LIBS)"
 	@echo "### SYSTEM_LIBS = $(SYSTEM_LIBS)"
 	@echo "### TOOLCHAIN_LIBS = $(TOOLCHAIN_LIBS)"
+	@echo "### ASFLAGS = $(ASFLAGS)"
 	@echo "### CFLAGS = $(CFLAGS)"
 	@echo "### LDFLAGS = $(LDFLAGS)"
 	@echo "### SHAREDLIB_LDFLAGS = $(SHAREDLIB_LDFLAGS)"
@@ -425,6 +556,9 @@ info :
 	@echo "### MEX_CPPFLAGS = $(MEX_CPPFLAGS)"
 	@echo "### MEX_LDFLAGS = $(MEX_LDFLAGS)"
 	@echo "### MEX_CPPLDFLAGS = $(MEX_CPPLDFLAGS)"
+	@echo "### OBJCOPYFLAGS_BIN = $(OBJCOPYFLAGS_BIN)"
+	@echo "### OBJCOPYFLAGS_HEX = $(OBJCOPYFLAGS_HEX)"
+	@echo "### EXESIZE_FLAGS = $(EXESIZE_FLAGS)"
 	@echo "### DOWNLOAD_FLAGS = $(DOWNLOAD_FLAGS)"
 	@echo "### EXECUTE_FLAGS = $(EXECUTE_FLAGS)"
 	@echo "### MAKE_FLAGS = $(MAKE_FLAGS)"
@@ -434,6 +568,7 @@ clean :
 	$(ECHO) "### Deleting all derived files..."
 	$(RM) $(PRODUCT)
 	$(RM) $(ALL_OBJS)
+	$(RM) *.dep
 	$(ECHO) "### Deleted all derived files."
 
 

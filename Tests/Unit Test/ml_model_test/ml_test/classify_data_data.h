@@ -5,7 +5,7 @@
  * File: classify_data_data.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 20-Mar-2022 19:57:03
+ * C/C++ source code generated on  : 29-Mar-2022 13:32:22
  */
 
 #ifndef CLASSIFY_DATA_DATA_H
@@ -13,15 +13,12 @@
 
 /* Include Files */
 #include "rtwtypes.h"
-#include "omp.h"
 #include <stddef.h>
 #include <stdlib.h>
 
 /* Variable Declarations */
-extern omp_nest_lock_t emlrtNestLockGlobal;
-extern const double dv[513];
-extern const double dv1[513];
-extern bool isInitialized_classify_data;
+extern const double dv[4097];
+extern const double dv1[4097];
 
 #endif
 /*

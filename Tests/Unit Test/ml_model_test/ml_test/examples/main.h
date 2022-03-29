@@ -5,7 +5,7 @@
  * File: main.h
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 20-Mar-2022 19:57:03
+ * C/C++ source code generated on  : 29-Mar-2022 13:32:22
  */
 
 /*************************************************************************/
@@ -38,7 +38,6 @@
 
 /* Include Files */
 #include "rtwtypes.h"
-#include "omp.h"
 #include <stddef.h>
 #include <stdlib.h>
 

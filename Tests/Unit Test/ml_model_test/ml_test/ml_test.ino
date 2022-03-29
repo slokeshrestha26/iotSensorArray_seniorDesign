@@ -1,8 +1,7 @@
 #include "classify_data.h"
 
 // length of data in an array
-#define DATA_LENGTH_ACC 7800
-#define DATA_LENGTH_HR 300
+#define DATA_LENGTH 23700  //7800*3 + 300. 7800 => ACC AND 300 => HR
 
 #define STRESS_CLASS 1 //if the classification is 1, then this signifies that stress was detected.
 
@@ -10,16 +9,14 @@ void initializeBluetooth();
 void sendAlert();
 void getData();
 
-int data_size = DATA_LENGTH_ACC*3 + DATA_LENGTH_HR;
-double data[data_size];
+double data[DATA_LENGTH];
 
 void setup()
 {
- initializeBluetooth(); 
+ initializeBluetooth();
 }
 
 void loop(){
-  double data[DATA_LENGTH_ACC] = getData(); //ONLY USING ACC DATA FOR NOW
   int class = classifyData(data);
 
   if (class == STRESS_CLASS){

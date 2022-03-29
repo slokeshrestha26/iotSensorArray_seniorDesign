@@ -5,7 +5,7 @@
  * File: _coder_classify_data_info.c
  *
  * MATLAB Coder version            : 5.2
- * C/C++ source code generated on  : 20-Mar-2022 19:57:03
+ * C/C++ source code generated on  : 29-Mar-2022 13:32:22
  */
 
 /* Include Files */
@@ -25,28 +25,28 @@ static const mxArray *emlrtMexFcnResolvedFunctionsInfo(void)
 {
   const mxArray *nameCaptureInfo;
   const char_T *data[6] = {
-      "789ced54cb6ed3401475a0486c80b061dd45c4269207b595608b1225b855d24871929650"
-      "dab13d6d87ce23cc4c8ad3154b360876f0117c003b58f20ffc015f81"
-      "ed649cc49271d4145728dccdf5f5f1dc731f9e6314ac46c1308cbbc6d8dede1ffb3b93b8"
-      "38f1378c794be28589bf9988b5dd32d6e6ce69fcc3c4bb9c29e4ab71",
-      "c02045f1498f53cc2053f668800c812427e7c88b90634c908d296acf06cd30a2b519280e"
-      "42287cae9c22f7ac3da4863895d30ac96c10cfe328a5dfb58c79242d"
-      "398fe477abc2f7e3927c3abf9bc1a7f17ee7007424121248c2cf10a8727748115312b804"
-      "4a8924682386b958af22894fd8ba6501cc55f04e72f15408383a9411",
-      "3e86c11b88a57220f3002587d42326856aaeafa394baef2dd857d24fbfbf1df95f5f1e3b"
-      "79f2fd2cbddfc8934fdb75f1f929f916fd2f1fa4f01513b868775bf6"
-      "7355afbfdaea56069eb379b15373ebd33a5a193c59751829715ef9bfa69c5f748ebd94fc"
-      "c504deb7f62a07a5e01612e808ce550928ce89c37d2015d4b75ca013",
-      "509e3e110405c32c7cc73d244099068e800aa703e8aa76b761d2b88f8f4bf60132fad0b8"
-      "aeced4c599516d43858934e5393577906088d486cc5598b36bd3edef"
-      "97e4d3f95f66f0693cd86b73c9bd46b303e56078607e78c17a73d397c1b74ffdd0af8a7e"
-      "e6cd97975ef7fcce68ffd9eb4de8357dba6b893d669146f5bf5eeb7c",
-      "dd94fcc5047e157a3d11ea96401e761517b3f7f9dd927d3ccce843e37fd46b5b40268fb9"
-      "584067fe964e2fbb4f3b834fe357a6d3f1ccc26de6a7279f7bf68b3c"
-      "f9b4ad0a5f5efabc0d6d7b08bd9e709a6ab0b5ffc47fb4c145e5dfd7e7df27f02e52",
+      "789ced55cd6ed34010ded0227101c285730f1597082fa23d708544494d9510296ed2124a"
+      "58dbd3d4747fc2eea6383c0137b8c1a37083c7e071b0936c7e2c1947"
+      "4d3142612eb3e3cf3bdfccacf7332ad8f50242e80e9ad8e77b137f7b1a17a7fe065ab624"
+      "5e98faad446cec26da5eda67f04f53ef09ae21d493801306b39dbe60",
+      "01275c3ba30120094ad04bf0c7c85940c10918b41683461cb1ea02340b62285e97cfc1bb"
+      "680d1992e76a5e215d0c66f37893d2ef76c63c92969c47f2bd4de1fb"
+      "79453e937f98c167f0eed1293e52201556545c00ae086fc8806b853d4a9402855bc00321"
+      "772aa0823edfb16d1c081d3d53423e95928c7a6a8c4f60fc9e044abb",
+      "84fbb80f1c24d1d063b4c7840f14c70b9f5a8c68943dd7bb2bf699f4f3f76f8dfdc3ad67"
+      "2eca91cfd8a6f08529f956fd4eefa7f01513b86cb59bce4b5dabbddd"
+      "6f9707bebbf7e1b0ead5e675343378b2ea4029715ef9bfa5ec5f758e9d94fcc504deb58f"
+      "cba7bbd11da4c49542e85dac85a0ae08b1d2c4dc7a097d5c9aaf2810",
+      "c9031e3f8b2eb2c4a5c97d2e0b36209e6eb5eb169bff17d7ec0367f46170539d658ab3c6"
+      "b50d754095a52e9975089203ad0eb9a703c1ff9a8effb8229fc9ff3a"
+      "83cfe0d1b936d63cd7f1ec70291a1e5e1e5e74bcb9e9cbe0fb976eec37453ff3e6cb4baf"
+      "3be1d1e8e4e0dd1ef11b217b61cb636ed37ae5bf5e9b7ced94fcc504",
+      "7e1d7a3d15eaa6043ff0b4908bf7f9e39a7d3cc8e8c3e0bfd56b4712aece845c4167fe94"
+      "4eaf7b9e4e069fc1af4da767338b4f333f3df9da715ee5c9676c53f8"
+      "f2d2e7e7c47186c4ef48b7a107fb274fc2478f852cfffbfafc0b8b93329f",
       ""};
   nameCaptureInfo = NULL;
-  emlrtNameCaptureMxArrayR2016a(&data[0], 4504U, &nameCaptureInfo);
+  emlrtNameCaptureMxArrayR2016a(&data[0], 4520U, &nameCaptureInfo);
   return nameCaptureInfo;
 }
 
@@ -78,11 +78,11 @@ mxArray *emlrtMexFcnProperties(void)
   emlrtSetField(
       xEntryPoints, 0, (const char_T *)"FullPath",
       emlrtMxCreateString(
-          (const char_T
-               *)"/Users/sloke/Documents/classes/Senior Design "
-                 "II/iotSensorArray_seniorDesign/waistband/classify_data.m"));
+          (const char_T *)"/Users/sloke/Documents/classes/Senior Design "
+                          "II/iotSensorArray_seniorDesign/waistband/"
+                          "generate_ml_model/classify_data.m"));
   emlrtSetField(xEntryPoints, 0, (const char_T *)"TimeStamp",
-                emlrtMxCreateDoubleScalar(738600.74708333332));
+                emlrtMxCreateDoubleScalar(738609.56135416671));
   xResult =
       emlrtCreateStructMatrix(1, 1, 5, (const char_T **)&propFieldName[0]);
   emlrtSetField(
