@@ -1,2 +1,6 @@
 .DS_Store
+*.prj
+waistband/codegen
 .asv
+.asv
+*.prj
