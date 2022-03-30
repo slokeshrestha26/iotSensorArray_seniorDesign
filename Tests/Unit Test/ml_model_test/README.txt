@@ -1,7 +1,4 @@
-A sample data is passed to ML to 
-
-- check for any errors.
-- is the output an expected data type (a bit)?
+A sample data is passed to ML to check the following.
 
 
 Test 1: Compilation Error
@@ -19,8 +16,5 @@ Test 2: Run Time Error
 
 RESULTS:
 
-Test 1: Compilation Error: Pass
-    - No compilation error encountered
-Test 2: Runtime Error: 
-    - 
-
+Test 1: Compilation Test: FAILED
+    - region `DTCM' overflowed by 6046400 bytes
