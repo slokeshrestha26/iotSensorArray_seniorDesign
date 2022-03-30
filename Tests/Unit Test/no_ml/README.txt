@@ -1,5 +1,8 @@
 Teesting if non-trivial model works. 
 
+Parameters:
+    Takes 1 minute of data because the ml_model_test failed
+
 Test 1: Compilation Test
     Pass Conditions:
         - Code compiles. 
