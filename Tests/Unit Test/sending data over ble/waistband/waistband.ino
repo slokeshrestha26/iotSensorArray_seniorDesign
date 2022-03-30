@@ -11,7 +11,7 @@ void setup() {
 void loop() {
   while(hm10.available()){
     byte data=hm10.read();
-    Serial.write(data);
+    Serial.(data);
   }
   while(Serial.available()){
 
