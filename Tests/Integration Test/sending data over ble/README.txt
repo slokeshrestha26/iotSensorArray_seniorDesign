@@ -1,1 +1,0 @@
-This test explores the constraints that exists when sending data over bluetooth
