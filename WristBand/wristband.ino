@@ -128,8 +128,29 @@ int motionZ = 0; // z axis motion
 //count iterations since last heart rate storage
 int hertzCount = 26;
 
+//counts where we are in the heart array
+int heartCounter = 0;
+
 //shows a 0 if no stress detected and a 1 if stress is detected, Default is 0
 int stressDetected = 0;
+
+//block length data point saved when converted to character
+uint8_t block_len = 5;
+
+//The amount of data points for a minute for the axis
+uint8_t data_length = 1560;
+
+//multidimensional arrays to store all data for a minute
+uint8_t x_array[1560][5];
+uint8_t y_array[1560][5];
+uint8_t z_array[1560][5];
+uint8_t h_array[60][5];
+
+//arrays used to store the data collected for the single iteration
+uint8_t x_index[5];
+uint8_t y_index[5];
+uint8_t z_index[5];
+uint8_t h_index[5];
 
 /*/*==================================Fuction prototype/*==================================*/
 bool validatePorts();
@@ -148,13 +169,16 @@ void initialize_display();
 
 void displayStress(unsigned long &);
 
+void fillDataX(int);
+void fillDataY(int);
+void fillDataZ(int);
+void fillDataH(int);
+
 /*==================================MAIN SETUP AND LOOP==========================================*/
 void setup(void)
 {
-  if (INFERENCE_MODE){
-    //initialize bluetooth
-    intialize_bluetooth();
-  }
+
+  intialize_bluetooth();
 
   intialize_lrasensor();
   initialize_accelerometer();
@@ -173,12 +197,7 @@ void loop() {
 
   int heartIndex = 0;
 
-  //Strings that will be sent via bluetooth containing data for heart rate and accelerometer and time stamp
-  int heartData[60] = [];
-  int xData[1560] = [];
-  int yData[1560] = [];
-  int zData[1560] = [];
-  unsigned long epochTime[1560] = [];
+  heartCounter = 0;
 
   for(int i=0; i<=1560; i++){
     
@@ -199,16 +218,28 @@ void loop() {
 
     //Storing every iteration of data
     if(hertzCount > 26){
-      heartData[heartIndex] = beatAvg;
+      fillDataH(beatAvg);
       hertzCount = 0;
       heartIndex++;
+      for (int j = 0; j < block_len; j++) {
+        h_array[heartCounter][j] = h_index[j];
+      }
+      heartCounter++;
     }
     else{
       hertzCount++;
     }
-    xData[i] = motionX;
-    yData[i] = motionY;
-    zData[i] = motionZ;
+
+    fillDataX(motionX);
+    fillDataY(motionY);
+    fillDataZ(motionZ);
+
+    //place data pulled from x,y,z, and h into their corresponding arrays
+    for (int j = 0; j < block_len; j++) {
+      x_array[i][j] = x_index[j];
+      y_array[i][j] = y_index[j];
+      z_array[i][j] = z_index[j];
+    }
   
     bluetooth_loop();
 
@@ -464,4 +495,157 @@ void displayStress(unsigned long &screenClearTime)
   delay(10000);
   display.setCursor(0,40);
   display.print("3: Exhale");
+}
+
+void fillDataX(int intData){
+    x_index[0] = 'x';
+    String x = "";
+    if(intData < 0){
+      int xN = intData * -1;
+      x = String(xN);
+      x_index[1] = '-';
+      switch(x.length()){
+        //adds 2 zeros infront of integer string
+        case 1:
+          x = "00" + x;
+          break;
+        //adds 1 zero infront of integer string
+        case 2:
+          x = "0" + x;
+          break;
+        default:
+          break;
+      }
+    }
+    else{
+      x = String(intData);
+      x_index[1] = '0';
+      switch(x.length()){
+        //adds 2 zeros infront of integer string
+        case 1:
+          x = "00" + x;
+          break;
+        //adds 1 zero infront of integer string
+        case 2:
+          x = "0" + x;
+          break;
+        default:
+          break;
+      }
+    }
+
+    for (int j = 2; j < block_len; j++) {
+       x_index[j] = x[j-2];
+    }
+
+}
+
+void fillDataY(int intData){
+    y_index[0] = 'y';
+    String y = "";
+    if(intData < 0){
+      int yN = intData * -1;
+      y = String(yN);
+      y_index[1] = '-';
+      switch(y.length()){
+        //adds 2 zeros infront of integer string
+        case 1:
+          y = "00" + y;
+          break;
+        //adds 1 zero infront of integer string
+        case 2:
+          y = "0" + y;
+          break;
+        default:
+          break;
+      }
+    }
+    else{
+      y = String(intData);
+      y_index[1] = '0';
+      switch(y.length()){
+        //adds 2 zeros infront of integer string
+        case 1:
+          y = "00" + y;
+          break;
+        //adds 1 zero infront of integer string
+        case 2:
+          y = "0" + y;
+          break;
+        default:
+          break;
+      }
+    }
+
+    for (int j = 2; j < block_len; j++) {
+       y_index[j] = y[j-2];
+    }
+
+}
+
+void fillDataZ(int intData){
+    z_index[0] = 'z';
+    String z = "";
+    if(intData < 0){
+      int zN = intData * -1;
+      z = String(zN);
+      z_index[1] = '-';
+      switch(z.length()){
+        //adds 2 zeros infront of integer string
+        case 1:
+          z = "00" + z;
+          break;
+        //adds 1 zero infront of integer string
+        case 2:
+          z = "0" + z;
+          break;
+        default:
+          break;
+      }
+    }
+    else{
+      z = String(intData);
+      z_index[1] = '0';
+      switch(z.length()){
+        //adds 2 zeros infront of integer string
+        case 1:
+          z = "00" + z;
+          break;
+        //adds 1 zero infront of integer string
+        case 2:
+          z = "0" + z;
+          break;
+        default:
+          break;
+      }
+    }
+
+    for (int j = 2; j < block_len; j++) {
+       z_index[j] = z[j-2];
+    }
+
+}
+
+void fillDataH(int intData){
+    h_index[0] = 'h';
+    String h = "";
+    h = String(intData);
+    h_index[1] = '0';
+    switch(h.length()){
+      //adds 2 zeros infront of integer string
+      case 1:
+        h = "00" + h;
+        break;
+      //adds 1 zero infront of integer string
+      case 2:
+        h = "0" + h;
+        break;
+      default:
+        break;
+    }
+
+    for (int j = 2; j < block_len; j++) {
+       h_index[j] = h[j-2];
+    }
+
 }
