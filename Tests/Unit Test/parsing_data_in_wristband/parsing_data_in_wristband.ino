@@ -12,7 +12,8 @@
 // Global Variables for data
 double data_acc[DATA_ACC_LENGHT_PER_AXIS*3]; // Flattened data which is arranged as: [accx, accy, accz]
 double data_hr[DATA_HR_LENGTH];
-char ble_buff[4]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
+char ble_buff[5]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
+void generate_data_trivial(char ble_buff[], int counter);
 
 
 // index of the array to populate. Associated with:
@@ -25,13 +26,16 @@ int idx_accy = DATA_ACC_LENGHT_PER_AXIS;
 int idx_accz = DATA_ACC_LENGHT_PER_AXIS*2;
 int idx_hr = 0;
 
+int loop_counter = 0; // counter to artificially fill up the data buffer.
+
 //Fucntion Definition
 int predict_trivial(double acc[], double hr[]);
 double avg(double a[], int size);
 double avg(int a[], int size);
 double parse_data(char a[]);
 void parse_data(double data[], char ble_buff[]);
-void reset_idx(int &accx, int &accy, int &accz, int &hr);
+void reset_idx(int& accx, int& accy, int& accz, int& hr);
+void generate_data_trivial(char ble_buff[], int counter);
 
 void setup(){
     #if DEBUG
@@ -39,8 +43,36 @@ void setup(){
     #endif
 }
 void loop(){
-    predict_trivial(acc, hr);
+    generate_data_trivial(ble_buff, loop_counter); //populates the character array
 
+    bool data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
+    if (data_arr_is_empty){
+        if(ble_buff[0] != 'h'){
+            parse_data(data_acc, ble_buff);
+        }
+        else{
+            parse_data(data_hr, ble_buff);
+        }
+        loop_counter++;
+    }
+    
+    if(!data_arr_is_empty){ //if data array is populated, run the model, reset data indexes and loop counter
+        predict_trivial(data_acc, data_hr);
+        Serial.println(data_acc[4679]);
+        Serial.println(data_hr[59]);
+        delay(10000);
+        reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
+        Serial.print("idx_accx: ");
+        Serial.println(idx_accx);
+        Serial.print("idx_accy: ");
+        Serial.println(idx_accy);
+        Serial.print("idx_accz: ");
+        Serial.println(idx_accz);
+        Serial.print("idx_hr: ");
+        Serial.println(idx_hr);
+        delay(10000);
+        loop_counter = 0;
+    }
 }
 
 int predict_trivial(double acc[], double hr[]){
@@ -84,20 +116,9 @@ double avg(int a[], int size){
 }
 
 
-int main(){
-    char strx[4] = {'x','5','0','4'};
-    char stry[4] = {'y','4','1','0'};
-    char strz[4] = {'z','3','1','2'};
-    char strh[4] = {'h','3','3','3'};
-    int x = parse_data(strx);
-    printf("%d \n", x);
-
-    return 0;
-}
-
 double parse_data(char a[]){
     /*Returns the character array that is parsed into doubles*/
-    char b[] = {a[1], a[2], a[3], '\0'};
+    char b[] = {a[1], a[2], a[3], a[4],'\0'};
     return (double) atoi(b);
 }
 
@@ -121,7 +142,7 @@ void parse_data(double data[], char ble_buff[]){
         idx_accy++;
         break;
 
-    case 'y':
+    case 'z':
         data[idx_accz] = parse_data(ble_buff);
         idx_accz++;
         break;
@@ -137,7 +158,7 @@ void parse_data(double data[], char ble_buff[]){
 
 }
 
-void reset_idx(int &accx, int &accy, int &accz, int &hr){
+void reset_idx(int& accx, int& accy, int& accz, int& hr){
     /* Resets the insert index for the data array*/
 
     accx = 0;
@@ -148,7 +169,40 @@ void reset_idx(int &accx, int &accy, int &accz, int &hr){
 }
 
 
-void generate_data_trivial(){
+void generate_data_trivial(char ble_buff[], int counter){
+    /*Trivial subroutine to simulate data generation to get around bluetooth*/
 
-
+    switch (counter % 4)
+    {
+    case 0:
+        ble_buff[0] = 'x';
+        ble_buff[1] = '-';
+        ble_buff[2] = '5';
+        ble_buff[3] = '0';
+        ble_buff[4] = '4';
+        break;
+    case 1:
+        ble_buff[0] = 'y';
+        ble_buff[1] = '-';
+        ble_buff[2] = '5';
+        ble_buff[3] = '0';
+        ble_buff[4] = '4';
+        break;
+    case 2:
+        ble_buff[0] = 'z';
+        ble_buff[1] = '-';
+        ble_buff[2] = '5';
+        ble_buff[3] = '0';
+        ble_buff[4] = '4';
+        break;
+    case 3:
+        ble_buff[0] = 'h';
+        ble_buff[1] = '-';
+        ble_buff[2] = '5';
+        ble_buff[3] = '0';
+        ble_buff[4] = '4';
+        break;
+    default:
+        break;
+    }
 }
