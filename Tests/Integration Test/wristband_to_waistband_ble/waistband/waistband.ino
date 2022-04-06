@@ -46,18 +46,21 @@ void setup() {
  
 void loop() {
   //check if data available from wristband
-  int stress = 0; 
-  populate_ble_buff(ble_buff);
+  bool data_arr_is_empty = true;
   
-  bool data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
-  if (data_arr_is_empty){ //parse data if data array is empty
-      if(ble_buff[0] != 'h'){
-          parse_data(data_acc, ble_buff);
-      }
-      else{
-          parse_data(data_hr, ble_buff);
-          reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
-      }
+  while(data_arr_is_empty){
+	  populate_ble_buff(ble_buff);
+	  
+	  data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
+	  if (data_arr_is_empty){ //parse data if data array is empty
+		  if(ble_buff[0] != 'h'){
+			  parse_data(data_acc, ble_buff);
+		  }
+		  else{
+			  parse_data(data_hr, ble_buff);
+			  reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
+		  }
+	  }
   }
 
   else{
@@ -76,6 +79,7 @@ void loop() {
   }
 
 }
+
 
 //===================== FUNCTIONS IMPLEMENTATION===================
 
