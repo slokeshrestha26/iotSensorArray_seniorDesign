@@ -238,15 +238,16 @@ void loop() {
     }    
   }
 
-    //Send heartData, xData, yData, zData, & epochTime
+  //Send heartData, xData, yData, zData, & epochTime
   aci_loop();
   send_data_ble();
-  //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress
-
-  //Only display that you are feeling stressed if you are feeling stressed
-  if(stressDetected){
+  //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress.
+  // Now, since only thing that waistband sends the wristband is stress notification, only checking ble_rx_buffer is fine.
+  if(ble_rx_buffer){
     displayStress(screenClearTime);
+    ble_rx_buffer_len = 0;
   }
+
 }
 
 
