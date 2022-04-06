@@ -3,16 +3,17 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-#define TEST true
-#define DEBUG true // flag for serial feedback for debug
+#define TEST false
+#define DEBUG false // flag for serial feedback for debug
 // these lengths are for a minute
 #define DATA_ACC_LENGHT_PER_AXIS 1560 
 #define DATA_HR_LENGTH 60
+#define BLE_BUFF_SIZE 5
 
 // Global Variables for data
 double data_acc[DATA_ACC_LENGHT_PER_AXIS*3]; // Flattened data which is arranged as: [accx, accy, accz]
 double data_hr[DATA_HR_LENGTH];
-char ble_buff[5]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
+char ble_buff[BLE_BUFF_SIZE]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
 void generate_data_trivial(char ble_buff[], int counter);
 
 
