@@ -1,22 +1,26 @@
-/*This code implements the data parsing that happens in the wristband side after the data is sent from the wristband.*/
-
-#include<stdio.h>
-#include<stdlib.h>
 #include <SoftwareSerial.h>
-
-// these lengths are for a minute
 #define DATA_ACC_LENGHT_PER_AXIS 1560 
 #define DATA_HR_LENGTH 60
 #define BLE_BUFF_SIZE 5
 
+#define DEBUG false
+
 SoftwareSerial hm10(7,8); //RX, TX 
+
 
 // Global Variables for data
 double data_acc[DATA_ACC_LENGHT_PER_AXIS*3]; // Flattened data which is arranged as: [accx, accy, accz]
 double data_hr[DATA_HR_LENGTH];
 char ble_buff[BLE_BUFF_SIZE]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
-void generate_data_trivial(char ble_buff[], int counter);
 
+//Function Definition
+int predict_trivial(double acc[], double hr[]);
+double avg(double a[], int size);
+double avg(int a[], int size);
+double parse_data(char a[]);
+void parse_data(double data[], char ble_buff[]);
+void reset_idx(int& accx, int& accy, int& accz, int& hr);
+void populate_ble_buff(char ble_buff[]);
 
 // index of the array to populate. Associated with:
 //           - parse_data(double data[], char ble_buff[]) method. 
@@ -28,53 +32,84 @@ int idx_accy = DATA_ACC_LENGHT_PER_AXIS;
 int idx_accz = DATA_ACC_LENGHT_PER_AXIS*2;
 int idx_hr = 0;
 
-int loop_counter = 0; // counter to ARTIFICIALLY fill up the data buffer.
+int loop_counter = 0; // counter to artificially fill up the data buffer.
 
-//Fucntion Definition
-int predict_trivial(double acc[], double hr[]);
-double avg(double a[], int size);
-double avg(int a[], int size);
-double parse_data(char a[]);
-void parse_data(double data[], char ble_buff[]);
-void reset_idx(int& accx, int& accy, int& accz, int& hr);
-void generate_data_trivial(char ble_buff[], int counter);
-
-void setup(){
-    #if DEBUG
-        Serial.begin(9600);
-    #endif
-    ble_setup();
+ 
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  hm10.begin(115200);  
+  delay(100);
+  hm10.write("AT+NOTIFY_ON0010");
+  delay(100);
 }
-void loop(){
+ 
+void loop() {
+  //check if data available from wristband
+  bool data_arr_is_empty = true;
+  
+  while(data_arr_is_empty){
+	  populate_ble_buff(ble_buff);
+	  
+	  data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
+	  if (data_arr_is_empty){ //parse data if data array is empty
+		  if(ble_buff[0] != 'h'){
+			  parse_data(data_acc, ble_buff);
+		  }
+		  else{
+			  parse_data(data_hr, ble_buff);
+			  reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
+		  }
+	  }
+  }
 
-    generate_data_trivial(ble_buff, loop_counter); //populates the character array  
-    bool data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
+  else{
+    stress = predict_trivial(data_acc, data_hr);
+  }
 
-    if (data_arr_is_empty){
-        //parse data if data array is empty
-        if(ble_buff[0] != 'h'){
-            parse_data(data_acc, ble_buff);
-        }
-        else{
-            parse_data(data_hr, ble_buff);
-        }
-        loop_counter++;
+  if(stress){
+    hm10.write("At+SEND_DATAWN000E1");
+    stress = 0;
+  }
+
+  //test, use code above for final implementation
+  while(Serial.available()){
+    byte data=Serial.read();
+    hm10.write(data);
+  }
+
+}
+
+
+//===================== FUNCTIONS IMPLEMENTATION===================
+
+void populate_ble_buff(char ble_buff[]){
+    /*Populated ble buffer from hm10*/
+
+  if(hm10.available()){
+    for (int i=0; i < BLE_BUFF_SIZE; i++){
+      ble_buff[i] = hm10.read();
     }
-    
-    if(!data_arr_is_empty){ //if data array is populated, run the model, reset data indexes and loop counter
-        predict_trivial(data_acc, data_hr);
-        reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
-        loop_counter = 0;
-    }
+  }
 }
 
 int predict_trivial(double acc[], double hr[]){
     /*Implementing a trivial model for proof of concept*/
-    
-    if (avg(acc, DATA_ACC_LENGHT_PER_AXIS*3) > 50 || avg(hr, DATA_HR_LENGTH) > 50){
+    double avg_acc = avg(acc, DATA_ACC_LENGHT_PER_AXIS*3);
+    double avg_hr = avg(hr, DATA_HR_LENGTH);
+
+    if (avg_acc > 30 || avg_hr > 20){
+        #if DEBUG
+          Serial.println("Stress Detected");
+          delay(500);
+        #endif
         return 1;
     }
     else{
+      #if DEBUG
+        Serial.println("No Stress Detected");
+        delay(500);
+      #endif
       return 0;
     }
 }
@@ -150,70 +185,5 @@ void reset_idx(int& accx, int& accy, int& accz, int& hr){
     accy = DATA_ACC_LENGHT_PER_AXIS;
     accz = DATA_ACC_LENGHT_PER_AXIS*2;
     hr = DATA_ACC_LENGHT_PER_AXIS*3;
-
-}
-
-
-void generate_data_trivial(char ble_buff[], int counter){
-    /*Trivial subroutine to simulate data generation to get around bluetooth. 
-    counter will define which data (among accx,accy,accz,hr) to send*/
-
-    switch (counter % 4)
-    {
-    case 0:
-        ble_buff[0] = 'x';
-        ble_buff[1] = '-';
-        ble_buff[2] = '5';
-        ble_buff[3] = '0';
-        ble_buff[4] = '4';
-        break;
-    case 1:
-        ble_buff[0] = 'y';
-        ble_buff[1] = '0';
-        ble_buff[2] = '5';
-        ble_buff[3] = '0';
-        ble_buff[4] = '4';
-        break;
-    case 2:
-        ble_buff[0] = 'z';
-        ble_buff[1] = '-';
-        ble_buff[2] = '5';
-        ble_buff[3] = '0';
-        ble_buff[4] = '4';
-        break;
-    case 3:
-        ble_buff[0] = 'h';
-        ble_buff[1] = '0';
-        ble_buff[2] = '5';
-        ble_buff[3] = '0';
-        ble_buff[4] = '4';
-        break;
-    default:
-        break;
-    }
-}
-
-
-
-
- 
-void ble_setup() {
-  hm10.begin(115200);
-  hm10.write("AT+NOTIFY_ON0010");
-}
- 
-void ble_loop() {
-
-    int stress = 0;
-    //check if data available from wristband
-    while(hm10.available()){
-        ble_buff = hm10.read();
-        Serial.write(data); //modify to store/write data to intended location
-
-        if(stress) {
-            hm10.write("AT+SEND_DATAWN000E1");
-            stress = 0
-        }
-    }
 
 }

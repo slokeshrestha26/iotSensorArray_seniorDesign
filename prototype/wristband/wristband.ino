@@ -47,23 +47,19 @@ at UT Tyler https://www.uttyler.edu/electrical-engineering/ */
 #define BLE_DEBUG true
 #endif
 
-#if defined (ARDUINO_ARCH_AVR)
-#define SerialMonitorInterface Serial
-#elif defined(ARDUINO_ARCH_SAMD)
 #define SerialMonitorInterface SerialUSB
-#endif
 #define PIPE_UART_OVER_BTLE_UART_TX_TX 0
 
 // Data array size
-#define DATA_ACC_LENGHT_PER_AXIS 1560
-#define DATA_HR_LENGTH 60
+#define DATA_ACC_LENGHT_PER_AXIS 780
+#define DATA_HR_LENGTH 30
 #define BLE_BUFF_SIZE 5
 
 // global variable for inference mode flag
 volatile uint8_t INFERENCE_MODE = 1; //flag for inference mode (default is 1)
 
 // inference mode variables
-uint8_t ble_rx_buffer[21];
+uint8_t ble_rx_buffer[BLE_BUFF_SIZE];
 uint8_t ble_rx_buffer_len = 0;
 uint8_t ble_connection_state = false;
 
@@ -137,7 +133,7 @@ int stressDetected = 0;
 uint8_t block_len = 5;
 
 //The amount of data points for a minute for the axis
-uint8_t data_length = 1560;
+uint8_t data_length = DATA_ACC_LENGHT_PER_AXIS;
 
 //multidimensional arrays to store all data for a minute
 // Example of data [['x','-','1','2','3'], ['x','0',....]]
@@ -146,6 +142,7 @@ uint8_t x_array[DATA_ACC_LENGHT_PER_AXIS][BLE_BUFF_SIZE];
 uint8_t y_array[DATA_ACC_LENGHT_PER_AXIS][BLE_BUFF_SIZE];
 uint8_t z_array[DATA_ACC_LENGHT_PER_AXIS][BLE_BUFF_SIZE];
 uint8_t h_array[DATA_HR_LENGTH][BLE_BUFF_SIZE];
+uint8_t ble_buffer[BLE_BUFF_SIZE];
 
 //arrays used to store the data collected for the single iteration
 uint8_t x_index[5];
@@ -175,10 +172,11 @@ void fillDataY(int);
 void fillDataZ(int);
 void fillDataH(int);
 
+void send_data_ble();
+
 /*==================================MAIN SETUP AND LOOP==========================================*/
 void setup(void)
 {
-
   intialize_bluetooth();
   intialize_lrasensor();
   initialize_accelerometer();
@@ -190,7 +188,6 @@ void setup(void)
 
 
 void loop() {
-  
   static int emptyIntsCounter = 0;
   static unsigned long screenClearTime = millis();
   static int currentHour = rtc.getHours(); // performance optimization
@@ -199,8 +196,7 @@ void loop() {
 
   heartCounter = 0;
 
-  for(int i=0; i<=1560; i++){
-    
+  for(int i=0; i<=DATA_ACC_LENGHT_PER_AXIS; i++){
     Wireling.selectPort(pulseSensorPort);  
     checkPulse();
     
@@ -239,18 +235,17 @@ void loop() {
       x_array[i][j] = x_index[j];
       y_array[i][j] = y_index[j];
       z_array[i][j] = z_index[j];
-    }
+    }    
+  }
 
-    
-    //Send heartData, xData, yData, zData, & epochTime
-    bluetooth_loop();
-
-    //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress
-
-    //Only display that you are feeling stressed if you are feeling stressed
-    if(stressDetected){
-      displayStress(screenClearTime);
-    }
+  //Send heartData, xData, yData, zData, & epochTime
+  aci_loop();
+  send_data_ble();
+  //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress.
+  // Now, since only thing that waistband sends the wristband is stress notification, only checking ble_rx_buffer is fine.
+  if(ble_rx_buffer){
+    displayStress(screenClearTime);
+    ble_rx_buffer_len = 0;
   }
 
 }
@@ -349,7 +344,7 @@ void buzzLRA()
 
 void checkButtons(unsigned long &screenClearTime)
 {
-  if(display.getButtons(TSButtonUpperLeft) || display.getButtons(TSButtonLowerLeft) || display.getButtons(TSButtonLowerRight))
+  if(display.getButtons(TSButtonUpperLeft))
   {
   
     int battery = getBattPercent();
@@ -387,8 +382,7 @@ void checkButtons(unsigned long &screenClearTime)
     display.setCursor(0,50);
     display.print("Battery %: ");
     display.println(battery);
-  }
-  else
+  }else
   {
     display.off();
   }
@@ -402,22 +396,36 @@ void intialize_bluetooth(){
 
 }
 
-void send_data_ble(uint8_t x_array[], uint8_t y_array[], uint8_t z_array[], uint8_t h_array[]){
-
+void send_data_ble(){
   for(int i = 0; i < DATA_ACC_LENGHT_PER_AXIS; i++){
-    bluetooth_loop(x_array[i]);
-    bluetooth_loop(y_array[i]);
-    bluetooth_loop(z_array[i]);
+    // copy the data to the ble_buffer
+    for(int j = 0; j < BLE_BUFF_SIZE; j++){
+      ble_buffer[j] = x_array[i][j];
+    }
+    bluetooth_loop();
+    // copy the data to the ble_buffer
+    for(int j = 0; j < BLE_BUFF_SIZE; j++){
+      ble_buffer[j] = y_array[i][j];
+    }
+    bluetooth_loop();
+    // copy the data to the ble_buffer
+    for(int j = 0; j < BLE_BUFF_SIZE; j++){
+      ble_buffer[j] = z_array[i][j];
+    }
+    bluetooth_loop();
     
     if(i < DATA_HR_LENGTH){
-      bluetooth_loop(h_array[i]);
+      // copy the data to the ble_buffer
+      for(int j = 0; j < BLE_BUFF_SIZE; j++){
+      ble_buffer[j] = h_array[i][j];
+    }
+      bluetooth_loop();
     }
   }
-
-
 }
 
-void bluetooth_loop(uint8_t ble_buffer[]) {
+void bluetooth_loop() {
+  /**/
 
   aci_loop();//Process any ACI commands or events from the NRF8001- main BLE handler, must run often. Keep main loop short.
   delay(10);//should catch input
