@@ -98,15 +98,11 @@ const byte day = 16;
 const byte month = 8;
 const byte year = 19;
 
-// used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
-int pulseSensorPort = 1;
-int lraSensorPort = 2;
+// used to store which sensors are connected and if so, what port they are connected to
+int pulseSensorPort = 0;
 int accelSensorPort = 3;
 
-unsigned long stepTimestamps[STEP_TRIGGER] = {};
 unsigned long loopStart = 0;
-uint32_t doVibrate = 0;
-bool firstSD = true;
 
 RTCZero rtc;
 
@@ -153,13 +149,11 @@ uint8_t h_index[5];
 /*/*==================================Fuction prototype/*==================================*/
 bool validatePorts();
 int updatePedometer();
-void buzzLRA();
 void checkButtons(unsigned long &screenClearTime);
 void checkPulse();
 
 void initialize_wireling();
 void intialize_bluetooth();
-void intialize_lrasensor();
 void initialize_accelerometer();
 void initialize_pulse_sensor();
 void initialize_rtc();
@@ -178,7 +172,6 @@ void send_data_ble();
 void setup(void)
 {
   intialize_bluetooth();
-  intialize_lrasensor();
   initialize_accelerometer();
   initialize_pulse_sensor();
   initialize_rtc();
@@ -328,20 +321,6 @@ void resetHeartData()
   }
 }
 
-void buzzLRA()
-{
-  Wireling.selectPort(lraSensorPort);
-  
-  // Set the effect to play
-  drv.setWaveform(0, 17);      // Set effect 17
-  drv.setWaveform(1, 0);       // End waveform
-
-  // Play the effect
-  drv.go();
-
-  delay(500);
-}
-
 void checkButtons(unsigned long &screenClearTime)
 {
   if(display.getButtons(TSButtonUpperLeft))
@@ -433,16 +412,6 @@ void bluetooth_loop() {
   lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)ble_buffer, sendLength);
 }
 
-void intialize_lrasensor(){
-  // Initialize lrasensor
-  if (lraSensorPort) {
-    drv.begin();
-    drv.selectLibrary(1);
-    drv.setMode(DRV2605_MODE_INTTRIG);
-    drv.useLRA();
-  }
-}
-
 void initialize_accelerometer(){
   // Initialize accelerometer
   if (accelSensorPort) {
@@ -495,8 +464,6 @@ void initialize_wireling(){
 void displayStress(unsigned long &screenClearTime)
 { 
   int battery = getBattPercent();
-  
-  buzzLRA();
 
   if(rtc.getSeconds() == 0 && millis()-screenClearTime > 1000){
     display.clearScreen();
