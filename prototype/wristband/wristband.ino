@@ -474,15 +474,17 @@ void displayStress(unsigned long &screenClearTime)
   display.setCursor(0,0);
   display.print("Stress Detected");
   display.setCursor(0,10);
-  display.print("Please Breath: Inhale");
-  delay(10000);
+  display.print("Please Breath:");
   display.setCursor(0,20);
-  display.print("1");
+  display.print("Inhale");
   delay(10000);
   display.setCursor(0,30);
-  display.print("2");
+  display.print("1");
   delay(10000);
   display.setCursor(0,40);
+  display.print("2");
+  delay(10000);
+  display.setCursor(0,50);
   display.print("3: Exhale");
 }
 
