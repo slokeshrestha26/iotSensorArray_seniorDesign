@@ -99,7 +99,7 @@ const byte month = 8;
 const byte year = 19;
 
 // used to store which sensors are connected and if so, what port they are connected to
-int pulseSensorPort = 0;
+int pulseSensorPort = A0;
 int accelSensorPort = 3;
 
 unsigned long loopStart = 0;
@@ -486,6 +486,8 @@ void displayStress(unsigned long &screenClearTime)
   delay(10000);
   display.setCursor(0,50);
   display.print("3: Exhale");
+  delay(10000);
+  display.off();
 }
 
 void fillDataX(int intData){
