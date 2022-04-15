@@ -76,8 +76,10 @@ void loop() {
 
 void populate_ble_buff(char ble_buff[]){
     /*Populated ble buffer from hm10*/
-
-  if(hm10.available()){
+  if(!hm10.available()){
+    hm10.write("AT+NOTIFY_ON0010");
+  }
+  else{
     for (int i=0; i < BLE_BUFF_SIZE; i++){
       ble_buff[i] = hm10.read();
       Serial.println(ble_buff[i]);
