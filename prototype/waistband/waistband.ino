@@ -3,7 +3,7 @@
 #define DATA_HR_LENGTH 60
 #define BLE_BUFF_SIZE 5
 
-#define DEBUG false
+#define DEBUG true
 
 SoftwareSerial hm10(7,8); //RX, TX 
 
@@ -31,10 +31,10 @@ int idx_accx = 0;
 int idx_accy = DATA_ACC_LENGHT_PER_AXIS;
 int idx_accz = DATA_ACC_LENGHT_PER_AXIS*2;
 int idx_hr = 0;
+int stress = 0;
 
-int loop_counter = 0; // counter to artificially fill up the data buffer.
+bool data_arr_is_empty = true;
 
- 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -45,37 +45,26 @@ void setup() {
 }
  
 void loop() {
-  //check if data available from wristband
-  bool data_arr_is_empty = true;
-  
-  while(data_arr_is_empty){
-	  populate_ble_buff(ble_buff);
-	  
-	  data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
-	  if (data_arr_is_empty){ //parse data if data array is empty
-		  if(ble_buff[0] != 'h'){
-			  parse_data(data_acc, ble_buff);
-		  }
-		  else{
-			  parse_data(data_hr, ble_buff);
-			  reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
-		  }
-	  }
+  Serial.println(hm10.available());
+  populate_ble_buff(ble_buff);
+  if(data_arr_is_empty){
+    if(ble_buff[0] != 'h'){
+      parse_data(data_acc, ble_buff);
+    }
+    else{
+      parse_data(data_hr, ble_buff);
+    }
   }
 
-  else{
+  if(!data_arr_is_empty){
+    Serial.println("inside model calling guard");
     stress = predict_trivial(data_acc, data_hr);
+    reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
   }
 
   if(stress){
     hm10.write("At+SEND_DATAWN000E1");
     stress = 0;
-  }
-
-  //test, use code above for final implementation
-  while(Serial.available()){
-    byte data=Serial.read();
-    hm10.write(data);
   }
 
 }
@@ -89,6 +78,7 @@ void populate_ble_buff(char ble_buff[]){
   if(hm10.available()){
     for (int i=0; i < BLE_BUFF_SIZE; i++){
       ble_buff[i] = hm10.read();
+      Serial.println(ble_buff[i]);
     }
   }
 }
