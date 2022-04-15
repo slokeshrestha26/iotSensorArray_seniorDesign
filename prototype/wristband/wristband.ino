@@ -98,11 +98,15 @@ const byte day = 16;
 const byte month = 8;
 const byte year = 19;
 
-// used to store which sensors are connected and if so, what port they are connected to
-int pulseSensorPort = A0;
-int accelSensorPort = 3;
+// used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
+int pulseSensorPort = 3;
+int lraSensorPort = 2;
+int accelSensorPort = 0;
 
+unsigned long stepTimestamps[STEP_TRIGGER] = {};
 unsigned long loopStart = 0;
+uint32_t doVibrate = 0;
+bool firstSD = true;
 
 RTCZero rtc;
 
@@ -149,11 +153,13 @@ uint8_t h_index[5];
 /*/*==================================Fuction prototype/*==================================*/
 bool validatePorts();
 int updatePedometer();
+void buzzLRA();
 void checkButtons(unsigned long &screenClearTime);
 void checkPulse();
 
 void initialize_wireling();
 void intialize_bluetooth();
+void intialize_lrasensor();
 void initialize_accelerometer();
 void initialize_pulse_sensor();
 void initialize_rtc();
@@ -172,6 +178,7 @@ void send_data_ble();
 void setup(void)
 {
   intialize_bluetooth();
+  intialize_lrasensor();
   initialize_accelerometer();
   initialize_pulse_sensor();
   initialize_rtc();
@@ -181,6 +188,7 @@ void setup(void)
 
 
 void loop() {
+  aci_loop();
   static int emptyIntsCounter = 0;
   static unsigned long screenClearTime = millis();
   static int currentHour = rtc.getHours(); // performance optimization
@@ -236,6 +244,7 @@ void loop() {
   send_data_ble();
   //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress.
   // Now, since only thing that waistband sends the wristband is stress notification, only checking ble_rx_buffer is fine.
+  SerialMonitorInterface.println(ble_rx_buffer_len);
   if(ble_rx_buffer){
     displayStress(screenClearTime);
     ble_rx_buffer_len = 0;
@@ -321,6 +330,20 @@ void resetHeartData()
   }
 }
 
+void buzzLRA()
+{
+  Wireling.selectPort(lraSensorPort);
+  
+  // Set the effect to play
+  drv.setWaveform(0, 17);      // Set effect 17
+  drv.setWaveform(1, 0);       // End waveform
+
+  // Play the effect
+  drv.go();
+
+  delay(500);
+}
+
 void checkButtons(unsigned long &screenClearTime)
 {
   if(display.getButtons(TSButtonUpperLeft))
@@ -370,7 +393,6 @@ void checkButtons(unsigned long &screenClearTime)
 void intialize_bluetooth(){
   // BLE  setup routine to be called in the setup section
   SerialMonitorInterface.begin(9600);
-  while(!SerialMonitorInterface);
   BLEsetup();
 
 }
@@ -410,6 +432,16 @@ void bluetooth_loop() {
   delay(10);//should catch input
   uint8_t sendLength = BLE_BUFF_SIZE;
   lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)ble_buffer, sendLength);
+}
+
+void intialize_lrasensor(){
+  // Initialize lrasensor
+  if (lraSensorPort) {
+    drv.begin();
+    drv.selectLibrary(1);
+    drv.setMode(DRV2605_MODE_INTTRIG);
+    drv.useLRA();
+  }
 }
 
 void initialize_accelerometer(){
@@ -464,30 +496,28 @@ void initialize_wireling(){
 void displayStress(unsigned long &screenClearTime)
 { 
   int battery = getBattPercent();
+  
+  buzzLRA();
 
   if(rtc.getSeconds() == 0 && millis()-screenClearTime > 1000){
     display.clearScreen();
     screenClearTime = millis();
   }
-  
+  display.clearScreen();
   display.on();
   display.setCursor(0,0);
   display.print("Stress Detected");
   display.setCursor(0,10);
-  display.print("Please Breath:");
+  display.print("Please Breath: Inhale");
+  delay(1000);
   display.setCursor(0,20);
-  display.print("Inhale");
-  delay(10000);
-  display.setCursor(0,30);
   display.print("1");
-  delay(10000);
-  display.setCursor(0,40);
+  delay(1000);
+  display.setCursor(0,30);
   display.print("2");
-  delay(10000);
-  display.setCursor(0,50);
+  delay(1000);
+  display.setCursor(0,40);
   display.print("3: Exhale");
-  delay(10000);
-  display.off();
 }
 
 void fillDataX(int intData){
