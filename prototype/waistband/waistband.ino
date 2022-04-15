@@ -20,7 +20,7 @@ double avg(int a[], int size);
 double parse_data(char a[]);
 void parse_data(double data[], char ble_buff[]);
 void reset_idx(int& accx, int& accy, int& accz, int& hr);
-void populate_ble_buff(char ble_buff[]);
+void populate_ble_buff();
 
 // index of the array to populate. Associated with:
 //           - parse_data(double data[], char ble_buff[]) method. 
@@ -45,11 +45,11 @@ void setup() {
 }
  
 void loop() {
-  Serial.println(hm10.available());
-  
-  populate_ble_buff(ble_buff);
+
+  populate_ble_buff();
   data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
   if(data_arr_is_empty){
+//    Serial.println((double)ble_buff[0]);
     if(ble_buff[0] != 'h'){
       parse_data(data_acc, ble_buff);
     }
@@ -59,7 +59,7 @@ void loop() {
   }
 
   if(!data_arr_is_empty){
-    Serial.println("inside model calling guard");
+//    Serial.println("inside model calling guard");
     stress = predict_trivial(data_acc, data_hr);
     reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
   }
@@ -74,16 +74,16 @@ void loop() {
 
 //===================== FUNCTIONS IMPLEMENTATION===================
 
-void populate_ble_buff(char ble_buff[]){
+void populate_ble_buff(){
     /*Populated ble buffer from hm10*/
-  if(!hm10.available()){
-    hm10.write("AT+NOTIFY_ON0010");
-  }
-  else{
+//  if(!hm10.available()){
+//    hm10.write("AT+NOTIFY_ON0010");
+//  }
+//  else{
     for (int i=0; i < BLE_BUFF_SIZE; i++){
+      Serial.println(hm10.read());
       ble_buff[i] = hm10.read();
-      Serial.println(ble_buff[i]);
-    }
+//    }
   }
 }
 
@@ -133,6 +133,9 @@ double avg(int a[], int size){
 double parse_data(char a[]){
     /*Returns the character array that is parsed into doubles*/
     char b[] = {a[1], a[2], a[3], a[4],'\0'};
+    Serial.println("inside parse_data(char a[])");
+    delay(100);
+//    Serial.println((double) atoi(b));
     return (double) atoi(b);
 }
 
