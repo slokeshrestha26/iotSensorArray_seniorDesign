@@ -46,7 +46,9 @@ void setup() {
  
 void loop() {
   Serial.println(hm10.available());
+  
   populate_ble_buff(ble_buff);
+  data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
   if(data_arr_is_empty){
     if(ble_buff[0] != 'h'){
       parse_data(data_acc, ble_buff);
