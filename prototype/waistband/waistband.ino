@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
-#define DATA_ACC_LENGHT_PER_AXIS 1560 
-#define DATA_HR_LENGTH 60
+#define DATA_ACC_LENGHT_PER_AXIS 780 
+#define DATA_HR_LENGTH 30
 #define BLE_BUFF_SIZE 5
 
 #define DEBUG false
@@ -14,68 +14,55 @@ double data_hr[DATA_HR_LENGTH];
 char ble_buff[BLE_BUFF_SIZE]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
 
 //Function Definition
-int predict_trivial(double acc[], double hr[]);
+int predict_trivial();
 double avg(double a[], int size);
 double avg(int a[], int size);
-double parse_data(char a[]);
-void parse_data(double data[], char ble_buff[]);
+int convert_to_int(char a[]);
+void parse_data();
 void reset_idx(int& accx, int& accy, int& accz, int& hr);
-void populate_ble_buff(char ble_buff[]);
+void populate_ble_buff();
 
-// index of the array to populate. Associated with:
-//           - parse_data(double data[], char ble_buff[]) method. 
-//           - reset_idx(int &accx, int &accy, int &accz, int &hr) method.
-//           
-// SUGGESTION: Would be good if class is implemented
+/* index of the array to populate. Associated with:
+          - parse_data(double data[], char ble_buff[]) method. 
+          - reset_idx(int &accx, int &accy, int &accz, int &hr) method.
+          
+SUGGESTION: Would be good if class is implemented
+*/
 int idx_accx = 0;
 int idx_accy = DATA_ACC_LENGHT_PER_AXIS;
 int idx_accz = DATA_ACC_LENGHT_PER_AXIS*2;
 int idx_hr = 0;
 
-int loop_counter = 0; // counter to artificially fill up the data buffer.
+int stress = 0;
 
- 
+bool data_arr_has_space = true;
+
+int counter_ble_buff = 0;
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   hm10.begin(115200);  
-  delay(100);
   hm10.write("AT+NOTIFY_ON0010");
-  delay(100);
 }
  
 void loop() {
-  //check if data available from wristband
-  bool data_arr_is_empty = true;
-  
-  while(data_arr_is_empty){
-	  populate_ble_buff(ble_buff);
-	  
-	  data_arr_is_empty = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
-	  if (data_arr_is_empty){ //parse data if data array is empty
-		  if(ble_buff[0] != 'h'){
-			  parse_data(data_acc, ble_buff);
-		  }
-		  else{
-			  parse_data(data_hr, ble_buff);
-			  reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
-		  }
-	  }
-  }
+  populate_ble_buff();
 
+  data_arr_has_space = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3);
+
+
+  if(data_arr_has_space){ parse_data(); }
   else{
-    stress = predict_trivial(data_acc, data_hr);
+    stress = predict_trivial();
+    reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
+    counter_ble_buff = 0;
   }
 
-  if(stress){
+  if(stress == 1){
+    Serial.println(stress);
     hm10.write("At+SEND_DATAWN000E1");
     stress = 0;
-  }
-
-  //test, use code above for final implementation
-  while(Serial.available()){
-    byte data=Serial.read();
-    hm10.write(data);
   }
 
 }
@@ -83,20 +70,38 @@ void loop() {
 
 //===================== FUNCTIONS IMPLEMENTATION===================
 
-void populate_ble_buff(char ble_buff[]){
-    /*Populated ble buffer from hm10*/
+void populate_ble_buff(){
+  /*Populate ble buffer from hm10
+  Only populate if the data is not rubbish. (data might be rubbish if wristband does not send data to waistband fast enough)
+  */
 
-  if(hm10.available()){
-    for (int i=0; i < BLE_BUFF_SIZE; i++){
-      ble_buff[i] = hm10.read();
-    }
-  }
-}
 
-int predict_trivial(double acc[], double hr[]){
+  while(counter_ble_buff < 5){
+    if (hm10.available()){
+      
+      byte data = hm10.read();
+    
+      if((int) data != 255){// if data is not rubbish,
+        ble_buff[counter_ble_buff] = data;
+        
+        // only increment the counter if first element of the buffer is x, y, z, or h. Not incrementing the counter will ensure that ble_buff[0] will always have either x,y,z,or h.
+        if((ble_buff[0] == (int)'h') || ble_buff[0] == (int)'x' || ble_buff[0] == (int)'y' || ble_buff[0] == (int)'z') {
+          counter_ble_buff++;
+          }//end if
+          
+      }//end if
+      
+     }//end if
+   }
+
+  counter_ble_buff = 0;
+  
+}//end populate_ble_buff()
+
+int predict_trivial(){
     /*Implementing a trivial model for proof of concept*/
-    double avg_acc = avg(acc, DATA_ACC_LENGHT_PER_AXIS*3);
-    double avg_hr = avg(hr, DATA_HR_LENGTH);
+    double avg_acc = fabs(avg(data_acc, DATA_ACC_LENGHT_PER_AXIS*3));
+    double avg_hr = avg(data_hr, DATA_HR_LENGTH);
 
     if (avg_acc > 30 || avg_hr > 20){
         #if DEBUG
@@ -136,39 +141,40 @@ double avg(int a[], int size){
 }
 
 
-double parse_data(char a[]){
-    /*Returns the character array that is parsed into doubles*/
+int convert_to_int(char a[]){
+    /*Returns the character array that is parsed into int
+    */
     char b[] = {a[1], a[2], a[3], a[4],'\0'};
-    return (double) atoi(b);
+    return atoi(b);
 }
 
-void parse_data(double data[], char ble_buff[]){
+void parse_data(){
     /*  Parses data and inserts the double data into suitable indexes in the array. 
     data[]: A minute worth of data that needs to be passed to a model
     ble_buff[]: Array of four character arrays. 
     */
 
-    char type = ble_buff[0];
+    char type = (char)ble_buff[0];
     
     switch (type)
     {
     case 'x':
-        data[idx_accx] = parse_data(ble_buff);
+        data_acc[idx_accx] = convert_to_int(ble_buff);
         idx_accx++;
         break;
 
     case 'y':
-        data[idx_accy] = parse_data(ble_buff);
+        data_acc[idx_accy] = convert_to_int(ble_buff);
         idx_accy++;
         break;
 
     case 'z':
-        data[idx_accz] = parse_data(ble_buff);
+        data_acc[idx_accz] = convert_to_int(ble_buff);
         idx_accz++;
         break;
 
     case 'h':
-        data[idx_hr] = parse_data(ble_buff);
+        data_hr[idx_hr] = convert_to_int(ble_buff);
         idx_hr++;
         break;
 
@@ -180,7 +186,6 @@ void parse_data(double data[], char ble_buff[]){
 
 void reset_idx(int& accx, int& accy, int& accz, int& hr){
     /* Resets the insert index for the data array*/
-
     accx = 0;
     accy = DATA_ACC_LENGHT_PER_AXIS;
     accz = DATA_ACC_LENGHT_PER_AXIS*2;

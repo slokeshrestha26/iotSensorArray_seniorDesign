@@ -36,11 +36,10 @@ at UT Tyler https://www.uttyler.edu/electrical-engineering/ */
 #include <Wire.h>
 #include <Wireling.h>
 #include "Adafruit_DRV2605.h" // used to interface with the LRA Wireling
-#include <SdFat.h> // enables data to be logged to an sd card
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
 #include <STBLE.h> //BLE library
-#include <RTCZero.h>
+
 
 // inference mode preprocessor directives
 #ifndef BLE_DEBUG
@@ -99,9 +98,9 @@ const byte month = 8;
 const byte year = 19;
 
 // used to store which sensors are connected and if so, what port they are connected to. initial 0 value represents that they are not connected
-int pulseSensorPort = 1;
+int pulseSensorPort = 3;
 int lraSensorPort = 2;
-int accelSensorPort = 3;
+int accelSensorPort = 0;
 
 unsigned long stepTimestamps[STEP_TRIGGER] = {};
 unsigned long loopStart = 0;
@@ -188,6 +187,7 @@ void setup(void)
 
 
 void loop() {
+  aci_loop();
   static int emptyIntsCounter = 0;
   static unsigned long screenClearTime = millis();
   static int currentHour = rtc.getHours(); // performance optimization
@@ -236,17 +236,18 @@ void loop() {
       y_array[i][j] = y_index[j];
       z_array[i][j] = z_index[j];
     }    
+    
   }
 
   //Send heartData, xData, yData, zData, & epochTime
   aci_loop();
   send_data_ble();
+
   //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress.
   // Now, since only thing that waistband sends the wristband is stress notification, only checking ble_rx_buffer is fine.
-  if(ble_rx_buffer){
-    displayStress(screenClearTime);
-    ble_rx_buffer_len = 0;
-  }
+
+  
+  displayStress(screenClearTime);
 
 }
 
@@ -391,7 +392,6 @@ void checkButtons(unsigned long &screenClearTime)
 void intialize_bluetooth(){
   // BLE  setup routine to be called in the setup section
   SerialMonitorInterface.begin(9600);
-  while(!SerialMonitorInterface);
   BLEsetup();
 
 }
@@ -431,6 +431,8 @@ void bluetooth_loop() {
   delay(10);//should catch input
   uint8_t sendLength = BLE_BUFF_SIZE;
   lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)ble_buffer, sendLength);
+  // SerialMonitorInterface.println((char)ble_buffer[0]);
+  delay(100);
 }
 
 void intialize_lrasensor(){
@@ -502,19 +504,19 @@ void displayStress(unsigned long &screenClearTime)
     display.clearScreen();
     screenClearTime = millis();
   }
-  
+  display.clearScreen();
   display.on();
   display.setCursor(0,0);
   display.print("Stress Detected");
   display.setCursor(0,10);
   display.print("Please Breath: Inhale");
-  delay(10000);
+  delay(1000);
   display.setCursor(0,20);
   display.print("1");
-  delay(10000);
+  delay(1000);
   display.setCursor(0,30);
   display.print("2");
-  delay(10000);
+  delay(1000);
   display.setCursor(0,40);
   display.print("3: Exhale");
 }
