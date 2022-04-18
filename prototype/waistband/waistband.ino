@@ -1,9 +1,9 @@
 #include <SoftwareSerial.h>
-#define DATA_ACC_LENGHT_PER_AXIS 1560 
-#define DATA_HR_LENGTH 60
+#define DATA_ACC_LENGHT_PER_AXIS 780 
+#define DATA_HR_LENGTH 30
 #define BLE_BUFF_SIZE 5
 
-#define DEBUG true
+#define DEBUG false
 
 SoftwareSerial hm10(7,8); //RX, TX 
 
@@ -14,11 +14,11 @@ double data_hr[DATA_HR_LENGTH];
 char ble_buff[BLE_BUFF_SIZE]; //character array for bluetooth buffer. QUESTION: HOW DO WE HANDLE NEGATIVE NUMBERS FOR ACC DATA
 
 //Function Definition
-int predict_trivial(double acc[], double hr[]);
+int predict_trivial();
 double avg(double a[], int size);
 double avg(int a[], int size);
-int parse_data(char a[]);
-void parse_data(double data[], char ble_buff[]);
+int convert_to_int(char a[]);
+void parse_data();
 void reset_idx(int& accx, int& accy, int& accz, int& hr);
 void populate_ble_buff();
 
@@ -49,26 +49,18 @@ void setup() {
 void loop() {
   populate_ble_buff();
 
-  data_arr_has_space = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3 || idx_hr < DATA_HR_LENGTH);
+  data_arr_has_space = (idx_accx < DATA_ACC_LENGHT_PER_AXIS || idx_accy < DATA_ACC_LENGHT_PER_AXIS*2 || idx_accz < DATA_ACC_LENGHT_PER_AXIS*3);
 
-  if(data_arr_has_space){
- 
-    if(ble_buff[0] != 'h'){
-      parse_data(data_acc, ble_buff);
-    }
-    else{
-      parse_data(data_hr, ble_buff);
-    }
 
-  }
-
-  if(!data_arr_has_space){
-    stress = predict_trivial(data_acc, data_hr);
+  if(data_arr_has_space){ parse_data(); }
+  else{
+    stress = predict_trivial();
     reset_idx(idx_accx, idx_accy, idx_accz, idx_hr);
     counter_ble_buff = 0;
   }
 
   if(stress == 1){
+    Serial.println(stress);
     hm10.write("At+SEND_DATAWN000E1");
     stress = 0;
   }
@@ -102,21 +94,14 @@ void populate_ble_buff(){
      }//end if
    }
 
-  
   counter_ble_buff = 0;
   
-  Serial.print((char)ble_buff[0]);
-  Serial.print((char)ble_buff[1]);
-  Serial.print((char)ble_buff[2]);
-  Serial.print((char)ble_buff[3]);
-  Serial.print((char)ble_buff[4]);
-  Serial.println("Doyylllllll");
 }//end populate_ble_buff()
 
-int predict_trivial(double acc[], double hr[]){
+int predict_trivial(){
     /*Implementing a trivial model for proof of concept*/
-    double avg_acc = avg(acc, DATA_ACC_LENGHT_PER_AXIS*3);
-    double avg_hr = avg(hr, DATA_HR_LENGTH);
+    double avg_acc = fabs(avg(data_acc, DATA_ACC_LENGHT_PER_AXIS*3));
+    double avg_hr = avg(data_hr, DATA_HR_LENGTH);
 
     if (avg_acc > 30 || avg_hr > 20){
         #if DEBUG
@@ -156,14 +141,14 @@ double avg(int a[], int size){
 }
 
 
-int parse_data(char a[]){
+int convert_to_int(char a[]){
     /*Returns the character array that is parsed into int
     */
     char b[] = {a[1], a[2], a[3], a[4],'\0'};
     return atoi(b);
 }
 
-void parse_data(double data[], char ble_buff[]){
+void parse_data(){
     /*  Parses data and inserts the double data into suitable indexes in the array. 
     data[]: A minute worth of data that needs to be passed to a model
     ble_buff[]: Array of four character arrays. 
@@ -174,22 +159,22 @@ void parse_data(double data[], char ble_buff[]){
     switch (type)
     {
     case 'x':
-        data[idx_accx] = parse_data(ble_buff);
+        data_acc[idx_accx] = convert_to_int(ble_buff);
         idx_accx++;
         break;
 
     case 'y':
-        data[idx_accy] = parse_data(ble_buff);
+        data_acc[idx_accy] = convert_to_int(ble_buff);
         idx_accy++;
         break;
 
     case 'z':
-        data[idx_accz] = parse_data(ble_buff);
+        data_acc[idx_accz] = convert_to_int(ble_buff);
         idx_accz++;
         break;
 
     case 'h':
-        data[idx_hr] = parse_data(ble_buff);
+        data_hr[idx_hr] = convert_to_int(ble_buff);
         idx_hr++;
         break;
 
