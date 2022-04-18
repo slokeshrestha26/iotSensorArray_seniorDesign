@@ -36,11 +36,10 @@ at UT Tyler https://www.uttyler.edu/electrical-engineering/ */
 #include <Wire.h>
 #include <Wireling.h>
 #include "Adafruit_DRV2605.h" // used to interface with the LRA Wireling
-#include <SdFat.h> // enables data to be logged to an sd card
 #include <RTCZero.h>  // enables date and time to be recorded with each sensor reading
 #include <MAX30101.h> // used to interface with the pulse oximetry sensor
 #include <STBLE.h> //BLE library
-#include <RTCZero.h>
+
 
 // inference mode preprocessor directives
 #ifndef BLE_DEBUG
@@ -245,7 +244,7 @@ void loop() {
   //Checking to see if we have recieved a 1 from the bluetooth of the waistband, to detect if we have stress.
   // Now, since only thing that waistband sends the wristband is stress notification, only checking ble_rx_buffer is fine.
   SerialMonitorInterface.println(ble_rx_buffer_len);
-  if(ble_rx_buffer){
+  if(ble_rx_buffer_len){
     displayStress(screenClearTime);
     ble_rx_buffer_len = 0;
   }
@@ -432,6 +431,7 @@ void bluetooth_loop() {
   delay(10);//should catch input
   uint8_t sendLength = BLE_BUFF_SIZE;
   lib_aci_send_data(PIPE_UART_OVER_BTLE_UART_TX_TX, (uint8_t*)ble_buffer, sendLength);
+  delay(100);
 }
 
 void intialize_lrasensor(){
